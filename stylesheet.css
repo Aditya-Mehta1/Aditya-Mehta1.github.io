@@ -26,26 +26,6 @@
     --ring:             #C49A6C;
 }
 
-[data-theme="dark"] {
-    --bg-primary:       #1A1614;
-    --bg-secondary:     #242019;
-    --bg-tertiary:      #2E2920;
-
-    --text-primary:     #EDE6DC;
-    --text-secondary:   #B8AFA5;
-    --text-tertiary:    #8A8078;
-
-    --accent:           #D4A574;
-    --accent-hover:     #E8C49A;
-    --accent-light:     #A67C52;
-
-    --highlight:        #3D3426;
-    --border:           #3A342C;
-    --shadow:           rgba(0, 0, 0, 0.25);
-    --shadow-hover:     rgba(0, 0, 0, 0.4);
-    --ring:             #D4A574;
-}
-
 /* ========================================
    2. Reset / Base
    ======================================== */
@@ -265,48 +245,7 @@ p[style*="text-align:right"] a:hover {
 }
 
 /* ========================================
-   11. Theme Toggle
-   ======================================== */
-
-#theme-toggle {
-    position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
-    z-index: 1000;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    box-shadow: 0 2px 8px var(--shadow);
-    transition: background-color 0.3s ease, color 0.3s ease,
-                border-color 0.3s ease, box-shadow 0.3s ease,
-                transform 0.15s ease;
-}
-
-#theme-toggle:hover {
-    background-color: var(--bg-tertiary);
-    color: var(--accent);
-    transform: scale(1.08);
-    box-shadow: 0 4px 12px var(--shadow-hover);
-}
-
-#theme-toggle:active {
-    transform: scale(0.95);
-}
-
-#theme-toggle svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* ========================================
-   12. Utility Classes
+   11. Utility Classes
    ======================================== */
 
 span.highlight {
@@ -341,19 +280,7 @@ span.highlight {
 }
 
 /* ========================================
-   13. Theme Transitions
-   ======================================== */
-
-body, td, th, tr, p, h1, h2, strong, em,
-ul li, #theme-toggle, span.highlight, .venue-badge {
-    transition: background-color 0.35s ease,
-                color 0.35s ease,
-                border-color 0.35s ease,
-                box-shadow 0.35s ease;
-}
-
-/* ========================================
-   14. Responsive
+   12. Responsive
    ======================================== */
 
 @media screen and (max-width: 768px) {
@@ -393,13 +320,6 @@ ul li, #theme-toggle, span.highlight, .venue-badge {
         max-width: 280px !important;
         margin: 0 auto 1rem auto;
         display: block;
-    }
-
-    #theme-toggle {
-        top: 0.75rem;
-        right: 0.75rem;
-        width: 38px;
-        height: 38px;
     }
 
     ul li {
