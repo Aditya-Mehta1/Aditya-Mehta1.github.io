@@ -158,10 +158,69 @@ mark {
   color: var(--ink-2);
 }
 
-.bio p + p { margin-top: 1rem; }
+.bio p + p,
+.bio ul + p { margin-top: 1rem; }
 
 .bio a { color: var(--ink); }
 .bio a:hover { color: var(--brown); }
+
+.bio a.moda {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.08em;
+  color: var(--brown);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  padding: 0 0.1em 0.12em;
+  margin: 0 -0.04em;
+  background-image:
+    linear-gradient(var(--brown), var(--brown)),
+    linear-gradient(var(--mark), var(--mark));
+  background-size: 100% 1px, 100% 0.42em;
+  background-position: 0 100%, 0 86%;
+  background-repeat: no-repeat;
+}
+
+.bio a.moda:hover { color: var(--brown-2); }
+
+.bio ul {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bio li {
+  position: relative;
+  padding-left: 1.15rem;
+  margin-top: 0.4rem;
+}
+
+.bio li::before {
+  content: "";
+  position: absolute;
+  left: 0.05rem;
+  top: 0.58em;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 1px;
+  background: var(--brown);
+  box-shadow: 2px 2px 0 var(--mark);
+}
+
+.from-to {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.from-to .to {
+  display: inline-block;
+  font-size: 0.72em;
+  font-weight: 400;
+  line-height: 1;
+  margin: 0 0.16em;
+  transform: translateY(-0.14em);
+}
 
 /* Right column: portrait + link list share the same width,
    so the space under the photo does work instead of sitting empty. */
