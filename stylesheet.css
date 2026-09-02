@@ -104,7 +104,7 @@ mark {
 .page {
   max-width: 68rem;
   margin: 0 auto;
-  padding: clamp(3rem, 9vh, 7rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 6vh, 4rem);
+  padding: clamp(2.25rem, 6vh, 5rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 6vh, 4rem);
 }
 
 /* ------------------------------------------------------------
@@ -114,21 +114,19 @@ mark {
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--side);
-  grid-template-rows: auto auto 1fr;
   column-gap: var(--gutter);
   align-items: start;
-  padding-bottom: clamp(3rem, 7vh, 5rem);
+  padding-bottom: clamp(1.75rem, 4.5vh, 3.25rem);
 }
 
-.name, .lede, .bio { grid-column: 1; }
-.hero-side { grid-column: 2; grid-row: 1 / span 3; }
+.hero-copy { min-width: 0; }
 
 .name {
   font-size: clamp(3rem, 7vw, 5.25rem);
   font-weight: 500;
   line-height: 0.95;
   letter-spacing: -0.025em;
-  margin: 0 0 1.75rem -0.04em;
+  margin: 0 0 1.5rem -0.04em;
 }
 
 .lede {
@@ -141,7 +139,7 @@ mark {
   color: var(--ink);
   max-width: 24em;
   text-wrap: balance;
-  margin-bottom: 2.25rem;
+  margin-bottom: 1.85rem;
 }
 
 .lede em {
@@ -222,10 +220,13 @@ mark {
   transform: translateY(-0.14em);
 }
 
-/* Right column: portrait + link list share the same width,
-   so the space under the photo does work instead of sitting empty. */
+/* Right column: portrait + contact block share the same width. */
 
 .hero-side {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.35rem;
   padding-top: 0.4rem;
 }
 
@@ -254,24 +255,42 @@ mark {
   border-radius: 3px;
 }
 
-/* Profile links: a single slash-separated line under the bio. */
+/* Contact: invite + profile links stacked under the portrait. */
 
-.bio .links {
-  margin-top: 1.75rem;
+.hero-side .contact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-left: 0.35rem;
+}
+
+.hero-side .contact p {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.hero-side .contact a { color: var(--ink); }
+.hero-side .contact a:hover { color: var(--brown); }
+
+.hero-side .email { white-space: normal; }
+
+.hero-side .links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: 0.005em;
-  color: var(--ink-3);
 }
 
-.bio .links a {
+.hero-side .links a {
   color: var(--ink);
   text-decoration: none;
 }
 
-.bio .links a:hover { color: var(--brown); text-decoration: underline; }
-
-.bio .links span { margin: 0 0.45rem; }
+.hero-side .links a:hover { color: var(--brown); text-decoration: underline; }
 
 /* ------------------------------------------------------------
    Sections: label in the left rail, content on the right
@@ -281,7 +300,7 @@ mark {
   display: grid;
   grid-template-columns: 10rem minmax(0, 1fr);
   column-gap: var(--gutter);
-  padding: clamp(2.5rem, 5vh, 3.5rem) 0;
+  padding: clamp(1.75rem, 4vh, 2.75rem) 0;
   border-top: 1px solid var(--rule);
 }
 
@@ -396,19 +415,29 @@ mark {
 @media (max-width: 860px) {
   :root { --side: 13rem; }
 
-  .hero {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
+  .hero { grid-template-columns: 1fr; }
+
+  /* Flatten so photo can sit between the lede and the bio. */
+  .hero-copy { display: contents; }
+
+  .name { order: 1; }
+  .lede { order: 2; }
+  .hero-side { order: 3; }
+  .bio { order: 4; }
+
+  /* Single column: name, tagline, photo + contact, bio. */
+  .hero-side {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 0.25rem 0 2.25rem;
   }
 
-  .name, .lede, .bio, .hero-side { grid-column: 1; grid-row: auto; }
+  .hero-side .contact { padding-left: 0; padding-top: 0.35rem; }
 
-  /* Single column: name, tagline, photo, bio. */
-  .hero-side { padding: 0.25rem 0 2.25rem; }
+  .portrait { flex: 0 0 auto; max-width: 11rem; }
 
   .lede { margin-bottom: 1.5rem; }
-
-  .portrait { max-width: 11rem; }
 
   .section {
     grid-template-columns: 1fr;
