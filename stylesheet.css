@@ -1,328 +1,381 @@
-/* ========================================
-   1. CSS Custom Properties
-   ======================================== */
+/* ------------------------------------------------------------
+   Tokens
+   ------------------------------------------------------------ */
 
 :root {
-    /* Backgrounds */
-    --bg-primary:       #FAF7F2;
-    --bg-secondary:     #F3EDE4;
-    --bg-tertiary:      #EBE3D7;
+  --bg:        #FBF8F2;
+  --ink:       #1B1611;
+  --ink-2:     #4A4038;
+  --ink-3:     #8A7E73;
+  --brown:     #6A3E24;
+  --brown-2:   #472817;
+  --rule:      #E6DED1;
+  --mark:      #EDDDC2;
 
-    /* Text */
-    --text-primary:     #2C2420;
-    --text-secondary:   #5C4F47;
-    --text-tertiary:    #8A7D74;
+  --serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --sans:  'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
 
-    /* Accent */
-    --accent:           #8B5E3C;
-    --accent-hover:     #6B4226;
-    --accent-light:     #C49A6C;
-
-    /* Utility */
-    --highlight:        #F5E6C8;
-    --border:           #DDD5C9;
-    --shadow:           rgba(44, 36, 32, 0.08);
-    --shadow-hover:     rgba(44, 36, 32, 0.14);
-    --ring:             #C49A6C;
+  --measure: 36rem;   /* ~72ch of body text */
+  --side:    16rem;   /* hero right column / section label column */
+  --gutter:  clamp(2rem, 5vw, 4.5rem);
 }
 
-/* ========================================
-   2. Reset / Base
-   ======================================== */
+/* ------------------------------------------------------------
+   Base
+   ------------------------------------------------------------ */
 
-*, *::before, *::after {
-    box-sizing: border-box;
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    margin: 0;
-    padding: 0;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* ========================================
-   3. Typography
-   ======================================== */
-
-body, td, th, tr, p, a {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--text-primary);
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  margin: 0;
+  color: var(--ink);
 }
 
-strong {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-h1.name {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 2.25rem;
-    font-weight: 700;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    padding-top: 20px;
-    margin: 0;
-}
-
-h2 {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--text-primary);
-    margin: 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--accent-light);
-    display: inline-block;
-}
-
-/* ========================================
-   4. Links
-   ======================================== */
+p { margin: 0; }
 
 a {
-    color: var(--accent);
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: var(--brown);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--brown) 40%, transparent);
+  text-underline-offset: 0.16em;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-a:focus,
-a:hover {
-    color: var(--accent-hover);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+a:hover { color: var(--brown-2); text-decoration-color: currentColor; }
+
+a:focus-visible {
+  outline: 2px solid var(--brown);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-/* ========================================
-   5. Layout
-   ======================================== */
+strong { font-weight: 600; color: var(--ink); }
 
-table {
-    border-color: transparent !important;
+img { display: block; max-width: 100%; height: auto; }
+
+/* Emphasis lives in the serif italic, everywhere. */
+em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.06em;
 }
 
-/* ========================================
-   6. Hero Section
-   ======================================== */
-
-img.hoverZoomLink {
-    border-radius: 50%;
-    border: 4px solid var(--ring) !important;
-    box-shadow: 0 4px 20px var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.35s ease;
+/* Marker-pen highlight. Used sparingly: reserved for the CVPR Highlight. */
+mark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.08em;
+  color: var(--brown-2);
+  background: linear-gradient(104deg, transparent 2%, var(--mark) 6%, var(--mark) 94%, transparent 97%);
+  padding: 0.02em 0.28em 0.06em;
+  margin: 0 -0.08em;
+  border-radius: 0.15em;
 }
 
-img.hoverZoomLink:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 32px var(--shadow-hover);
+.email { color: var(--ink-2); white-space: nowrap; }
+
+/* ------------------------------------------------------------
+   Page
+   ------------------------------------------------------------ */
+
+.page {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 9vh, 7rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 6vh, 4rem);
 }
 
-/* ========================================
-   7. Navigation Links
-   ======================================== */
+/* ------------------------------------------------------------
+   Hero
+   ------------------------------------------------------------ */
 
-p[style*="text-align:center"] a {
-    font-family: 'Inter', 'Helvetica Neue', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    padding: 0.3rem 0;
-    border-bottom: 1.5px solid transparent;
-    transition: border-color 0.2s ease, color 0.2s ease;
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--side);
+  grid-template-rows: auto auto 1fr;
+  column-gap: var(--gutter);
+  align-items: start;
+  padding-bottom: clamp(3rem, 7vh, 5rem);
 }
 
-p[style*="text-align:center"] a:hover {
-    border-bottom-color: var(--accent);
-    text-decoration: none;
+.name, .lede, .bio { grid-column: 1; }
+.hero-side { grid-column: 2; grid-row: 1 / span 3; }
+
+.name {
+  font-size: clamp(3rem, 7vw, 5.25rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  margin: 0 0 1.75rem -0.04em;
 }
 
-/* ========================================
-   8. News Section
-   ======================================== */
-
-ul {
-    padding-left: 0;
-    list-style: none;
+.lede {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(1.5rem, 2.6vw, 2.0625rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  max-width: 24em;
+  text-wrap: balance;
+  margin-bottom: 2.25rem;
 }
 
-ul li {
-    padding: 0.6rem 0.8rem;
-    margin-bottom: 0.35rem;
-    border-radius: 6px;
-    background-color: var(--bg-secondary);
-    border-left: 3px solid var(--accent-light);
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    transition: background-color 0.2s ease, transform 0.15s ease;
+.lede em {
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1em;
+  color: var(--brown);
 }
 
-ul li:hover {
-    background-color: var(--bg-tertiary);
-    transform: translateX(2px);
+.bio {
+  max-width: var(--measure);
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--ink-2);
 }
 
-/* ========================================
-   9. Publications Section
-   ======================================== */
+.bio p + p { margin-top: 1rem; }
 
-.papertitle {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1.4;
+.bio a { color: var(--ink); }
+.bio a:hover { color: var(--brown); }
+
+/* Right column: portrait + link list share the same width,
+   so the space under the photo does work instead of sitting empty. */
+
+.hero-side {
+  padding-top: 0.4rem;
 }
 
-a:hover .papertitle {
-    color: var(--accent-hover);
+.portrait {
+  display: block;
+  width: 100%;
+  max-width: var(--side);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  padding: 6px;
+  box-shadow:
+    0 1px 2px rgba(27, 22, 17, 0.06),
+    0 10px 30px -14px rgba(27, 22, 17, 0.28);
+  transform: rotate(-1.75deg);
+  transition: transform 0.35s cubic-bezier(.2,.7,.2,1);
 }
 
-/* Publication image */
-div#vadar img {
-    border-radius: 8px;
-    transition: transform 0.3s ease;
+.portrait:hover { transform: rotate(0deg); }
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
 }
 
-div#vadar img:hover {
-    transform: scale(1.02);
+/* Profile links: a single slash-separated line under the bio. */
+
+.bio .links {
+  margin-top: 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--ink-3);
 }
 
-/* Publication metadata */
-td[style*="width:70%"] em {
-    color: var(--text-secondary);
+.bio .links a {
+  color: var(--ink);
+  text-decoration: none;
 }
 
-.venue-badge {
-    display: inline-block;
-    font-family: 'Inter', 'Helvetica Neue', sans-serif;
-    font-style: normal;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background-color: var(--highlight);
-    border: 1px solid var(--accent-light);
-    padding: 0.15em 0.55em;
-    border-radius: 999px;
-    vertical-align: middle;
-    margin-left: 0.2em;
-    line-height: 1.4;
+.bio .links a:hover { color: var(--brown); text-decoration: underline; }
+
+.bio .links span { margin: 0 0.45rem; }
+
+/* ------------------------------------------------------------
+   Sections: label in the left rail, content on the right
+   ------------------------------------------------------------ */
+
+.section {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  column-gap: var(--gutter);
+  padding: clamp(2.5rem, 5vh, 3.5rem) 0;
+  border-top: 1px solid var(--rule);
 }
 
-/* Publication resource links */
-td[style*="width:70%"] > a {
-    font-family: 'Inter', 'Helvetica Neue', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
+.section-title {
+  font-size: 1.375rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink-3);
+  line-height: 1.2;
+  margin-top: 0.15rem;
 }
 
-/* ========================================
-   10. Footer
-   ======================================== */
+/* News ------------------------------------------------------ */
 
-p[style*="text-align:right"] {
-    color: var(--text-tertiary) !important;
-    border-top: 1px solid var(--border);
-    padding-top: 1rem !important;
-    margin-top: 2rem;
+.news {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 44rem;
 }
 
-p[style*="text-align:right"] a {
-    color: var(--text-tertiary) !important;
+.news li {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  column-gap: 1.5rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
 }
 
-p[style*="text-align:right"] a:hover {
-    color: var(--accent) !important;
+.news li + li { border-top: 1px solid var(--rule); }
+
+.news time {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
-/* ========================================
-   11. Utility Classes
-   ======================================== */
-
-span.highlight {
-    background-color: var(--highlight);
-    padding: 0.1em 0.3em;
-    border-radius: 3px;
+.news p {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--ink);
 }
 
-.colored-box {
-    color: var(--text-primary);
-    padding: 20px;
-    display: inline-block;
-    border-radius: 10px;
+.news a { color: var(--ink); }
+.news a:hover { color: var(--brown); }
+
+/* Publications ---------------------------------------------- */
+
+.papers { display: grid; row-gap: 3rem; }
+
+.paper {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  column-gap: 2.5rem;
+  align-items: start;
 }
 
-.one {
-    width: 160px;
-    height: 160px;
-    position: relative;
+.paper-figure {
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: #fff;
+  padding: 0.75rem;
+  transition: border-color 0.2s ease, transform 0.35s cubic-bezier(.2,.7,.2,1);
 }
 
-.two {
-    width: 160px;
-    height: 160px;
-    position: absolute;
+.paper-figure:hover { border-color: var(--brown); transform: translateY(-2px); }
+
+.paper-title {
+  font-size: clamp(1.375rem, 2vw, 1.625rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  max-width: 22em;
+  text-wrap: balance;
 }
 
-.fade {
-    transition: opacity .2s ease-in-out;
-    -moz-transition: opacity .2s ease-in-out;
-    -webkit-transition: opacity .2s ease-in-out;
+.paper-title a { color: var(--ink); text-decoration: none; }
+.paper-title a:hover { color: var(--brown); text-decoration: underline; }
+
+.paper-authors {
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
 }
 
-/* ========================================
-   12. Responsive
-   ======================================== */
+.paper-authors a { color: var(--ink-2); text-decoration: none; }
+.paper-authors a:hover { color: var(--brown); text-decoration: underline; }
+.paper-authors strong { color: var(--ink); }
 
-@media screen and (max-width: 768px) {
-    h1.name {
-        font-size: 1.75rem;
-    }
+.paper-venue {
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
 
-    h2 {
-        font-size: 1.25rem;
-    }
+.paper-links {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
 
-    body, td, th, tr, p, a {
-        font-size: 0.9375rem;
-    }
+/* ------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------ */
 
-    /* Single column hero */
-    td[style*="width:63%"],
-    td[style*="width:37%"] {
-        display: block !important;
-        width: 100% !important;
-        text-align: center;
-    }
+@media (max-width: 860px) {
+  :root { --side: 13rem; }
 
-    td[style*="width:37%"] img {
-        max-width: 200px !important;
-        margin: 0 auto;
-    }
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
 
-    /* Single column publications */
-    td[style*="width:30%"],
-    td[style*="width:70%"] {
-        display: block !important;
-        width: 100% !important;
-    }
+  .name, .lede, .bio, .hero-side { grid-column: 1; grid-row: auto; }
 
-    td[style*="width:30%"] img {
-        max-width: 280px !important;
-        margin: 0 auto 1rem auto;
-        display: block;
-    }
+  /* Single column: name, tagline, photo, bio. */
+  .hero-side { padding: 0.25rem 0 2.25rem; }
 
-    ul li {
-        font-size: 0.875rem;
-    }
+  .lede { margin-bottom: 1.5rem; }
+
+  .portrait { max-width: 11rem; }
+
+  .section {
+    grid-template-columns: 1fr;
+    row-gap: 1.25rem;
+  }
+
+  .paper {
+    grid-template-columns: 1fr;
+    row-gap: 1.25rem;
+  }
+
+  .paper-figure { max-width: 22rem; }
+}
+
+@media (max-width: 520px) {
+  .portrait { max-width: 9.5rem; }
+
+  .name { font-size: clamp(2.75rem, 14vw, 3.5rem); }
+
+  .news li {
+    grid-template-columns: 1fr;
+    row-gap: 0.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+  .portrait { transform: none; }
 }
