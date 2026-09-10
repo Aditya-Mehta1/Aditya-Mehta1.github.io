@@ -46,7 +46,7 @@
     <div class="hero-copy">
       <h1 class="name">Aditya Mehta</h1>
 
-      <p class="lede">Studying CS @ Caltech.</p>
+      <p class="lede">Studying CS at Caltech.</p>
 
       <div class="bio">
 
@@ -54,21 +54,28 @@
           I spent this summer at <a href="https://moda.app/" class="moda">Moda</a>, where I:
         </p>
         <ul>
-          <li>Built and launched <em>Layerize</em>, a layer canvas decomposition tool <span class="from-to">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
+          <li><span class="wash-phrase" data-wash>Built and launched <em>Layerize</em></span>, a layer canvas decomposition tool <span class="from-to">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
           <li>Worked on improvements to Moda's agent harness with ideas like programmatic tool calling and rubric-guided verification</li>
-          <li>Worked to automate ^ by building the primitives for a agent &ldquo;continual improvement&rdquo; stack: rollout/replay environments, LLM judge/eval, trace intelligence, and metric observability.</li>
+          <li>Worked to automate ^ by building the primitives for an agent &ldquo;continual improvement&rdquo; stack: rollout/replay environments, LLM judge/eval, trace intelligence, and metric observability.</li>
         </ul>
 
         <p>
-          At Caltech, I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group with
-          <a href="https://damianomarsili.github.io/">Damiano Marsili</a> on evaluating and improving multimodal
-          reasoning for LLMs. Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
+          At Caltech, I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group on
+          <span class="twin-hover-anchor">
+            <button type="button" class="twin-link" aria-expanded="false" aria-controls="twin-card"><span class="wash-phrase" data-wash>evaluating and improving multimodal reasoning for LLMs</span></button><span id="twin-card" class="twin-popover" role="tooltip" aria-hidden="true">
+              <span class="twin-popover-header">
+                <span class="twin-badge">TWIN</span>
+                <span class="twin-venue-tag">CVPR 2026 Highlight</span>
+              </span>
+              <span class="twin-popover-title">Same or Not? Enhancing Visual Perception in Vision-Language Models</span>
+            </span>
+          </span>. Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
           I combined classical CV with foundation vision models for unsupervised segmentation of microscopy images.
-          I've also enjoyed TAing <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
+          I've also enjoyed <span class="wash-phrase" data-wash>TAing</span> <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
           (Deep Learning).
         </p>
         <p>
-           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on LLM quantization and building an evaluation stack for quantized checkpoints.
+           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on <span class="wash-phrase" data-wash>LLM quantization</span> and building an evaluation stack for quantized checkpoints.
         </p>
       </div>
     </div>
@@ -139,5 +146,91 @@
   </section>
 
 </main>
+
+<script>
+  (function() {
+    const anchor = document.querySelector('.twin-hover-anchor');
+    const trigger = anchor.querySelector('.twin-link');
+    const card = anchor.querySelector('.twin-popover');
+    let dismissed = false;
+
+    function positionCard() {
+      const rect = trigger.getBoundingClientRect();
+      const width = card.offsetWidth;
+      const left = Math.max(16, Math.min(rect.left + rect.width / 2 - width / 2,
+        window.innerWidth - width - 16));
+      const above = rect.top > card.offsetHeight + 24;
+      card.style.left = left + 'px';
+      card.style.top = (above ? rect.top - card.offsetHeight - 9 : rect.bottom + 9) + 'px';
+      card.classList.toggle('is-below', !above);
+      card.style.setProperty('--arrow-left', Math.max(12, Math.min(width - 12,
+        rect.left + rect.width / 2 - left)) + 'px');
+    }
+
+    function setCard(open) {
+      if (open) positionCard();
+      anchor.classList.toggle('is-open', open);
+      trigger.setAttribute('aria-expanded', String(open));
+      card.setAttribute('aria-hidden', String(!open));
+    }
+
+    anchor.addEventListener('pointerenter', event => {
+      if (event.pointerType === 'mouse') { dismissed = false; setCard(true); }
+    });
+    anchor.addEventListener('pointerleave', () => {
+      if (document.activeElement !== trigger || dismissed) setCard(false);
+    });
+    trigger.addEventListener('focus', () => { dismissed = false; setCard(true); });
+    trigger.addEventListener('blur', () => setCard(false));
+    trigger.addEventListener('click', () => { dismissed = false; setCard(true); });
+    document.addEventListener('pointerdown', event => {
+      if (!anchor.contains(event.target)) setCard(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { dismissed = true; setCard(false); }
+    });
+    window.addEventListener('resize', () => setCard(false));
+    window.addEventListener('scroll', () => setCard(false), { passive: true });
+
+    const washElements = Array.from(document.querySelectorAll('[data-wash]'));
+    const queued = new Set();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let nextReveal = 0;
+
+    function reveal(elements) {
+      elements.forEach(el => {
+        if (queued.has(el)) return;
+        queued.add(el);
+        const now = performance.now();
+        const delay = reducedMotion.matches ? 0 : Math.max(0, nextReveal - now);
+        nextReveal = now + delay + 320;
+        setTimeout(() => el.classList.add('is-revealed'), delay);
+      });
+    }
+
+    function revealVisible() {
+      reveal(washElements.filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.top < window.innerHeight * 0.95 && rect.bottom > 0;
+      }));
+    }
+
+    const observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver(entries => {
+          reveal(washElements.filter(el => entries.some(entry =>
+            entry.target === el && entry.isIntersecting)));
+        }, { rootMargin: '0px 0px -5% 0px', threshold: 0.1 })
+      : null;
+
+    // Visible phrases start on load; the rest reveal as they enter the viewport.
+    if (observer) {
+      washElements.forEach(el => observer.observe(el));
+    } else {
+      revealVisible();
+      window.addEventListener('scroll', revealVisible, { passive: true });
+      window.addEventListener('resize', revealVisible);
+    }
+  })();
+</script>
 </body>
 </html>

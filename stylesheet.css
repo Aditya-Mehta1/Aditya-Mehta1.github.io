@@ -11,6 +11,7 @@
   --brown-2:   #472817;
   --rule:      #E6DED1;
   --mark:      #EDDDC2;
+  --wash-bg:   rgba(140, 134, 126, 0.24); /* warm gray ink wash against the paper background */
 
   --serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
   --sans:  'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
@@ -132,7 +133,7 @@ mark {
 .lede {
   font-family: var(--serif);
   font-optical-sizing: auto;
-  font-size: clamp(1.5rem, 2.6vw, 2.0625rem);
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
   font-weight: 300;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -461,9 +462,166 @@ mark {
     grid-template-columns: 1fr;
     row-gap: 0.15rem;
   }
+
+
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
   .portrait { transform: none; }
+}
+
+/* ------------------------------------------------------------
+   Interactive Flairs
+   ------------------------------------------------------------ */
+
+/* 1. Twin interactive popover & link */
+.twin-hover-anchor {
+  position: relative;
+  display: inline;
+}
+
+.twin-link {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--ink-3);
+  text-underline-offset: 0.2em;
+}
+
+.twin-link:hover { color: var(--brown); }
+.twin-link:focus-visible {
+  outline: 2px solid var(--brown);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.twin-popover {
+  position: fixed;
+  transform: translateY(6px);
+  width: min(18.5rem, 85vw);
+  background: #FFFFFF;
+  color: var(--ink);
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--rule);
+  box-shadow:
+    0 4px 6px -1px rgba(27, 22, 17, 0.05),
+    0 16px 32px -8px rgba(27, 22, 17, 0.14);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+/* Popover little down arrow */
+.twin-popover::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--arrow-left, 50%);
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: #FFFFFF transparent transparent transparent;
+  filter: drop-shadow(0 1px 0 var(--rule));
+}
+
+.twin-hover-anchor.is-open .twin-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Invisible bridge keeps the card reachable across its hover gap. */
+.twin-popover::before {
+  content: "";
+  position: absolute;
+  inset: -10px 0;
+  z-index: -1;
+}
+
+.twin-popover.is-below::after {
+  top: auto;
+  bottom: 100%;
+  border-width: 0 6px 6px;
+  border-color: transparent transparent #FFFFFF;
+}
+
+.twin-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.twin-badge {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--brown-2);
+  color: #FFFFFF;
+  padding: 0.16rem 0.45rem 0.14rem;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.twin-venue-tag {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--brown-2);
+  background: var(--mark);
+  padding: 0.12rem 0.45rem;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.twin-popover-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+/* 2. Scroll-revealed left-to-right staggered wash highlights */
+.wash-phrase {
+  display: inline;
+  background-image: linear-gradient(
+    to right,
+    var(--wash-bg) 0%,
+    var(--wash-bg) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 88%;
+  background-position: 0 88%;
+  padding: 0.05em 0.15em;
+  margin: -0.05em -0.15em;
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size 1.05s cubic-bezier(0.22, 0.61, 0.36, 1),
+              color 0.25s ease;
+}
+
+.wash-phrase.is-revealed {
+  background-size: 100% 88%;
 }
