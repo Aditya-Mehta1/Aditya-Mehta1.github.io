@@ -1,0 +1,12 @@
+{
+  "name": "aditya-mehta1.github.io",
+  "private": true,
+  "scripts": {
+    "lint": "node scripts/lint.mjs"
+  },
+  "devDependencies": {
+    "acorn": "^8.18.0",
+    "parse5": "^8.0.1",
+    "postcss": "^8.5.28"
+  }
+}

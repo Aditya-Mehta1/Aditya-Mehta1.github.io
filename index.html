@@ -230,7 +230,6 @@
         }, { rootMargin: '0px 0px -5% 0px', threshold: 0.1 })
       : null;
 
-    // Visible phrases start on load; the rest reveal as they enter the viewport.
     if (observer) {
       washElements.forEach(el => observer.observe(el));
     } else {
