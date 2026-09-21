@@ -28,16 +28,19 @@
 .paper-venue { font-size:14px; }
 .paper-links { font-size:13px; margin-top:12px; gap:8px 18px; }
 :root { --bg:#faf9ef; --ink:#35402f; --ink-2:#505747; --ink-3:#727a64; --brown:#63774b; --brown-2:#42532e; --rule:#dce0ce; }
-.notebook .page { max-width:880px; }
-.notebook .hero { grid-template-columns:minmax(0,1fr) 132px; gap:44px; }
+.notebook .page { max-width:1008px; }
+.notebook .hero { grid-template-columns:minmax(0,1fr) 260px; gap:44px; }
 .notebook .name { font-style:italic; font-size:46px; }
 .notebook .portrait { border:4px solid white; transform:none; }
 .notebook .section-title { font-style:italic; color:var(--brown); }
 .notebook .paper { grid-template-columns:210px minmax(0,1fr); }
 .notebook .paper-title { font-size:22px; }
+.listening-preview { display:block; width:100%; max-width:260px; margin-top:0; }
+.listening-preview img { display:block; width:100%; height:auto; }
+.listening-preview:focus-visible { outline:2px solid var(--brown); outline-offset:4px; }
 @media(max-width:720px) {
   .page { padding-top:30px; }
-  .hero,.notebook .hero { grid-template-columns:minmax(0,1fr) 132px; gap:28px; }
+  .hero,.notebook .hero { grid-template-columns:minmax(0,1fr) 220px; gap:28px; }
   .name { font-size:42px; }
   .hero-side .links { gap:0; }
   .hero-side .links a { width:32px; }
@@ -50,6 +53,7 @@
   .name,.notebook .name { order:0; font-size:40px; margin:0 0 -20px; }
   .lede { order:1; margin:0; font-size:16px; }
   .hero-side { order:2; display:grid; grid-template-columns:80px minmax(0,1fr); gap:22px; padding:0; align-items:start; }
+  .listening-preview { grid-column:1 / -1; }
   .bio { order:3; font-size:17px; }
   .portrait { max-width:80px; }
   .hero-side .contact { gap:5px; }
