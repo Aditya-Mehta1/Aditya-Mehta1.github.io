@@ -42,7 +42,8 @@
 </head>
 
 <body class="notebook">
-<main class="page">
+<a class="skip-link" href="#main">Skip to main content</a>
+<main class="page" id="main" tabindex="-1">
 
   <header class="hero">
     <div class="hero-copy">
@@ -56,7 +57,7 @@
           I spent this summer at <a href="https://moda.app/" class="moda">Moda</a>, where I:
         </p>
         <ul>
-          <li><span class="wash-phrase" data-wash>Built and launched <em>Layerize</em></span>, a layer canvas decomposition tool <span class="from-to">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
+          <li><span class="wash-phrase">Built and launched <em>Layerize</em></span>, a layer canvas decomposition tool <span class="from-to">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
           <li>Worked on improvements to Moda's agent harness with ideas like programmatic tool calling and rubric-guided verification</li>
           <li>Worked to automate ^ by building the primitives for an agent &ldquo;continual improvement&rdquo; stack: rollout/replay environments, LLM judge/eval, trace intelligence, and metric observability.</li>
         </ul>
@@ -64,7 +65,7 @@
         <p>
           At Caltech, I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group on
           <span class="twin-hover-anchor">
-            <button type="button" class="twin-link" aria-expanded="false" aria-controls="twin-card"><span class="wash-phrase" data-wash>evaluating and improving multimodal reasoning for LLMs</span></button><span id="twin-card" class="twin-popover" role="tooltip" aria-hidden="true">
+            <button type="button" class="twin-link" aria-expanded="false" aria-controls="twin-card" aria-describedby="twin-card"><span class="wash-phrase">evaluating and improving multimodal reasoning for LLMs</span></button><span id="twin-card" class="twin-popover" role="tooltip" aria-hidden="true">
               <span class="twin-popover-header">
                 <span class="twin-badge">TWIN</span>
                 <span class="twin-venue-tag">CVPR 2026 Highlight</span>
@@ -73,18 +74,18 @@
             </span>
           </span>. Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
           I combined classical CV with foundation vision models for unsupervised segmentation of microscopy images.
-          I've also enjoyed <span class="wash-phrase" data-wash>TAing</span> <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
+          I've also enjoyed <span class="wash-phrase">TAing</span> <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
           (Deep Learning).
         </p>
         <p>
-           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on <span class="wash-phrase" data-wash>LLM quantization</span> and building an evaluation stack for quantized checkpoints.
+           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on <span class="wash-phrase">LLM quantization</span> and building an evaluation stack for quantized checkpoints.
         </p>
       </div>
     </div>
 
     <aside class="hero-side">
       <a class="portrait" href="images/me.jpg">
-        <img src="images/me.jpg" alt="Aditya Mehta" width="480" height="480">
+        <img src="images/me.jpg" alt="Aditya Mehta" width="480" height="480" fetchpriority="high">
       </a>
       <div class="contact">
         <p>
@@ -107,7 +108,7 @@
         </nav>
       </div>
       <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="Recent listening on Last.fm">
-        <img src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=3&amp;width=260&amp;theme=light&amp;bg_color=faf9ef&amp;text_color=35402f&amp;artist_color=505747&amp;meta_color=727a64&amp;accent_color=63774b&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0" alt="My three most recent tracks on Last.fm" width="260" loading="lazy">
+        <img src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=3&amp;width=260&amp;theme=light&amp;bg_color=faf9ef&amp;text_color=35402f&amp;artist_color=505747&amp;meta_color=727a64&amp;accent_color=63774b&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0" alt="My three most recent tracks on Last.fm" width="260" height="168" loading="lazy">
       </a>
     </aside>
   </header>
@@ -132,7 +133,7 @@
 
       <article class="paper">
         <a class="paper-figure" href="https://glab-caltech.github.io/twin/">
-          <img src="images/twin.png" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="1024" height="463">
+          <img src="images/twin.png" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="1024" height="463" loading="lazy">
         </a>
         <div class="paper-body">
           <h3 class="paper-title">
@@ -169,11 +170,12 @@
     function positionCard() {
       const rect = trigger.getBoundingClientRect();
       const width = card.offsetWidth;
+      const height = card.offsetHeight;
       const left = Math.max(16, Math.min(rect.left + rect.width / 2 - width / 2,
         window.innerWidth - width - 16));
-      const above = rect.top > card.offsetHeight + 24;
+      const above = rect.top > height + 24;
       card.style.left = left + 'px';
-      card.style.top = (above ? rect.top - card.offsetHeight - 9 : rect.bottom + 9) + 'px';
+      card.style.top = (above ? rect.top - height - 9 : rect.bottom + 9) + 'px';
       card.classList.toggle('is-below', !above);
       card.style.setProperty('--arrow-left', Math.max(12, Math.min(width - 12,
         rect.left + rect.width / 2 - left)) + 'px');
@@ -203,44 +205,6 @@
     });
     window.addEventListener('resize', () => setCard(false));
     window.addEventListener('scroll', () => setCard(false), { passive: true });
-
-    const washElements = Array.from(document.querySelectorAll('[data-wash]'));
-    const queued = new Set();
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let nextReveal = 0;
-
-    function reveal(elements) {
-      elements.forEach(el => {
-        if (queued.has(el)) return;
-        queued.add(el);
-        const now = performance.now();
-        const delay = reducedMotion.matches ? 0 : Math.max(0, nextReveal - now);
-        nextReveal = now + delay + 320;
-        setTimeout(() => el.classList.add('is-revealed'), delay);
-      });
-    }
-
-    function revealVisible() {
-      reveal(washElements.filter(el => {
-        const rect = el.getBoundingClientRect();
-        return rect.top < window.innerHeight * 0.95 && rect.bottom > 0;
-      }));
-    }
-
-    const observer = 'IntersectionObserver' in window
-      ? new IntersectionObserver(entries => {
-          reveal(washElements.filter(el => entries.some(entry =>
-            entry.target === el && entry.isIntersecting)));
-        }, { rootMargin: '0px 0px -5% 0px', threshold: 0.1 })
-      : null;
-
-    if (observer) {
-      washElements.forEach(el => observer.observe(el));
-    } else {
-      revealVisible();
-      window.addEventListener('scroll', revealVisible, { passive: true });
-      window.addEventListener('resize', revealVisible);
-    }
   })();
 </script>
 </body>
