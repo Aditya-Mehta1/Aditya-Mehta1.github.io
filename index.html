@@ -34,11 +34,11 @@
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Geist:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="stylesheet.css">
-  <link rel="stylesheet" href="notebook.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/geist-v5-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/newsreader-v26-italic-400-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://lastfm-recently-played.jeffreyca.workers.dev">
+  <link rel="stylesheet" href="homepage.css">
 </head>
 
 <body class="notebook">
@@ -58,12 +58,13 @@
         </p>
         <ul>
           <li><span class="wash-phrase">Built <em>Layerize</em></span> <span class="from-to">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
-          <li>Worked on improvements to Moda's agent harness with ideas like programmatic tool calling and rubric-guided verification</li>
-          <li>Worked to automate ^ by building the primitives for an agent &ldquo;continual improvement&rdquo; stack: rollout/replay environments, LLM judge/eval, trace intelligence, and metric observability.</li>
+          <li>Improved the harness with programmatic tool calling and rubric-guided verification</li>
+          <li>Automated ^ by building the primitives for an agent &ldquo;continual improvement&rdquo; stack: rollout/replay environments, LLM judge/eval, trace intelligence, and metric observability.</li>
         </ul>
 
-        <p>
-          At Caltech, I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group on
+        <p>At Caltech:</p>
+        <ul>
+          <li>I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group on
           <span class="twin-hover-anchor">
             <button type="button" class="twin-link" aria-expanded="false" aria-controls="twin-card" aria-describedby="twin-card"><span class="wash-phrase">evaluating and improving multimodal reasoning for LLMs</span></button><span id="twin-card" class="twin-popover" role="tooltip" aria-hidden="true">
               <span class="twin-popover-header">
@@ -72,20 +73,21 @@
               </span>
               <span class="twin-popover-title">Same or Not? Enhancing Visual Perception in Vision-Language Models</span>
             </span>
-          </span>. Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
-          I combined classical CV with foundation vision models for unsupervised segmentation of microscopy images.
-          I've also enjoyed <span class="wash-phrase">TAing</span> <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
-          (Deep Learning).
-        </p>
+          </span>.</li>
+          <li>Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
+          I combined classical CV with foundation vision models for unsupervised segmentation of microscopy images.</li>
+          <li>I've also enjoyed <span class="wash-phrase">TAing</span> <a href="https://www.cms.caltech.edu/academics/courses/eecnscs-148-ab">CS 148a</a>
+          (Deep Learning).</li>
+        </ul>
         <p>
-           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on <span class="wash-phrase">LLM quantization</span> and building an evaluation stack for quantized checkpoints.
+           Last summer, I was at <a href="https://www.enchargeai.com/">Encharge AI</a> working on <span class="wash-phrase">LLM quantization</span> and efficient ML.
         </p>
       </div>
     </div>
 
     <aside class="hero-side">
       <a class="portrait" href="images/me.jpg">
-        <img src="images/me.jpg" alt="Aditya Mehta" width="480" height="480" fetchpriority="high">
+        <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 360px) 58px, (max-width: 540px) 72px, (max-width: 720px) 212px, 252px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
       </a>
       <div class="contact">
         <p>
@@ -108,7 +110,8 @@
         </nav>
       </div>
       <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="Recent listening on Last.fm">
-        <img src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=3&amp;width=260&amp;theme=light&amp;bg_color=faf9ef&amp;text_color=35402f&amp;artist_color=505747&amp;meta_color=727a64&amp;accent_color=63774b&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0" alt="My three most recent tracks on Last.fm" width="260" height="168" loading="lazy">
+        <span class="listening-status" aria-hidden="true">Recent listening on Last.fm <span aria-hidden="true">↗</span></span>
+        <img src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=3&amp;width=260&amp;theme=light&amp;bg_color=faf9ef&amp;text_color=35402f&amp;artist_color=505747&amp;meta_color=727a64&amp;accent_color=63774b&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0" alt="My three most recent tracks on Last.fm" width="260" height="168" loading="eager" decoding="async" fetchpriority="low">
       </a>
     </aside>
   </header>
@@ -133,7 +136,7 @@
 
       <article class="paper">
         <a class="paper-figure" href="https://glab-caltech.github.io/twin/">
-          <img src="images/twin.png" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="1024" height="463" loading="lazy">
+          <img src="images/twin-680.webp" srcset="images/twin-400.webp 400w, images/twin-680.webp 680w, images/twin-1020.webp 1020w, images/twin-1360.webp 1360w" sizes="(max-width: 360px) calc(100vw - 52px), (max-width: 384px) calc(100vw - 60px), (max-width: 540px) 324px, (max-width: 720px) 174px, 194px" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="6244" height="2819" loading="eager" decoding="async" fetchpriority="low">
         </a>
         <div class="paper-body">
           <h3 class="paper-title">
@@ -162,10 +165,31 @@
 
 <script>
   (function() {
+    const listening = document.querySelector('.listening-preview');
+    const cover = listening.querySelector('img');
+    listening.classList.add('is-pending');
+
+    async function showListening() {
+      try {
+        await cover.decode();
+        listening.classList.add('is-loaded');
+      } catch {
+        cover.hidden = true;
+      }
+      listening.classList.remove('is-pending');
+    }
+
+    if (cover.complete) showListening();
+    else {
+      cover.addEventListener('load', showListening, { once: true });
+      cover.addEventListener('error', showListening, { once: true });
+    }
+
     const anchor = document.querySelector('.twin-hover-anchor');
     const trigger = anchor.querySelector('.twin-link');
     const card = anchor.querySelector('.twin-popover');
     let dismissed = false;
+    let cardOpen = false;
 
     function positionCard() {
       const rect = trigger.getBoundingClientRect();
@@ -182,6 +206,8 @@
     }
 
     function setCard(open) {
+      if (open === cardOpen) return;
+      cardOpen = open;
       if (open) positionCard();
       anchor.classList.toggle('is-open', open);
       trigger.setAttribute('aria-expanded', String(open));

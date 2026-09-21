@@ -1,0 +1,78 @@
+[
+  {
+    "file": "geist-v5-normal-cyrillic-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMEwRGFWfOw.woff2",
+    "axes": null
+  },
+  {
+    "file": "geist-v5-normal-cyrillic.woff2",
+    "source": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMEwYGFWfOw.woff2",
+    "axes": null
+  },
+  {
+    "file": "geist-v5-normal-vietnamese.woff2",
+    "source": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMEwTGFWfOw.woff2",
+    "axes": null
+  },
+  {
+    "file": "geist-v5-normal-latin-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMEwSGFWfOw.woff2",
+    "axes": null
+  },
+  {
+    "file": "geist-v5-normal-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMEwcGFU.woff2",
+    "axes": null
+  },
+  {
+    "file": "newsreader-v26-italic-400-500-vietnamese.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9CfjOCX1hbuyalUrK439vCgYhCFpY.woff2",
+    "axes": {
+      "wght": [
+        400,
+        500
+      ]
+    }
+  },
+  {
+    "file": "newsreader-v26-italic-400-500-latin-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9CfjOCX1hbuyalUrK439vCgIhCFpY.woff2",
+    "axes": {
+      "wght": [
+        400,
+        500
+      ]
+    }
+  },
+  {
+    "file": "newsreader-v26-italic-400-500-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9CfjOCX1hbuyalUrK439vCjohC.woff2",
+    "axes": {
+      "wght": [
+        400,
+        500
+      ]
+    }
+  },
+  {
+    "file": "newsreader-v26-normal-500-vietnamese.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK439HyjJBG.woff2",
+    "axes": {
+      "wght": 500
+    }
+  },
+  {
+    "file": "newsreader-v26-normal-500-latin-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK439DyjJBG.woff2",
+    "axes": {
+      "wght": 500
+    }
+  },
+  {
+    "file": "newsreader-v26-normal-500-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/newsreader/v26/cY9AfjOCX1hbuyalUrK4397yjA.woff2",
+    "axes": {
+      "wght": 500
+    }
+  }
+]

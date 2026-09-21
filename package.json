@@ -2,10 +2,14 @@
   "name": "aditya-mehta1.github.io",
   "private": true,
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check && npm run lint",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "lint": "node scripts/lint.mjs"
   },
   "devDependencies": {
     "acorn": "^8.18.0",
+    "lightningcss": "^1.33.0",
     "parse5": "^8.0.1",
     "postcss": "^8.5.28"
   }
