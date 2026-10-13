@@ -2,6 +2,7 @@
   "name": "aditya-mehta1.github.io",
   "private": true,
   "scripts": {
+    "dev": "python3 -m http.server 8765 --bind 127.0.0.1",
     "build": "node scripts/build.mjs",
     "check": "node scripts/build.mjs --check && npm run lint",
     "optimize:images": "node scripts/optimize-images.mjs",

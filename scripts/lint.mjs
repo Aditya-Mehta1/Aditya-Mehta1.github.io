@@ -59,7 +59,7 @@ function lintHtml(source, file) {
 
 async function lintDirectory(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (['.git', 'node_modules'].includes(entry.name)) continue;
+    if (['.git', 'node_modules', '.local-design'].includes(entry.name)) continue;
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) {
       await lintDirectory(file);

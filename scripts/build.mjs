@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { transform } from 'lightningcss';
 
-const sources = await Promise.all(['fonts.css', 'stylesheet.css', 'notebook.css']
+const sources = await Promise.all(['fonts.css', 'stylesheet.css', 'notebook.css', 'layouts.css', 'launch-preview.css']
   .map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
 const { code } = transform({
   filename: 'homepage.css',
