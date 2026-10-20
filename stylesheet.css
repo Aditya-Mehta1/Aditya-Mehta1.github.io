@@ -172,7 +172,7 @@ a:is(:hover, :focus-visible) {
 }
 
 .contact { display: flex; flex-direction: column; gap: 10px; }
-.contact p { color: var(--ink-2); font-size: .875rem; line-height: 1.7; }
+.contact p { color: var(--ink-2); font-size: .75rem; line-height: 1.7; }
 
 .links {
   position: relative;

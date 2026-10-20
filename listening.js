@@ -135,7 +135,7 @@
     if (disclosure) {
       const label = document.createElement('p');
       label.className = 'listening-label';
-      label.textContent = 'Last.fm';
+      label.textContent = 'listening to';
       disclosure.replaceWith(label);
       disclosure = undefined;
     }
@@ -189,7 +189,7 @@
         disclosure = document.createElement('button');
         disclosure.type = 'button';
         disclosure.className = 'listening-label';
-        disclosure.textContent = 'Last.fm';
+        disclosure.textContent = 'listening to';
         disclosure.setAttribute('aria-label', 'Show listening history from Last.fm');
         disclosure.setAttribute('aria-controls', 'listening-history');
         disclosure.setAttribute('aria-expanded', 'false');

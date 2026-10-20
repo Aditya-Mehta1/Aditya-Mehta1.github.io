@@ -24,7 +24,7 @@ body[data-spacing="compact"] {
   body[data-layout="compact"] .page { max-width: 984px; padding-inline: 32px; }
   body[data-layout="compact"] .hero { column-gap: 36px; }
   body[data-layout="compact"] .name { font-size: 3.375rem; }
-  body[data-layout="compact"] .portrait { width: 244px; }
+  body[data-layout="compact"] .portrait { width: 200px; }
   body[data-layout="compact"] .section { grid-template-columns: minmax(140px, max-content) minmax(0, 1fr); gap: 24px; }
   body[data-layout="compact"] .paper { grid-template-columns: 172px minmax(0, 1fr); gap: 24px; }
 }
