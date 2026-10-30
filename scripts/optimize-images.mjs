@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const images = [
-  { name: 'twin', original: 'twin.png', widths: [400, 680, 1020, 1360], options: ['-lossless'] },
-  { name: 'expertlens', original: 'expertlens.png', widths: [400, 680, 1020, 1360], options: ['-lossless'] },
+  { name: 'twin', original: 'twin.png', widths: [480, 720], options: ['-q', '90', '-sharp_yuv'] },
+  { name: 'expertlens', original: 'expertlens.png', widths: [480, 720], options: ['-q', '90', '-sharp_yuv'] },
   { name: 'me', original: 'me.jpg', widths: [160, 320, 520, 780, 1040], options: ['-q', '92', '-sharp_yuv'] },
 ];
 

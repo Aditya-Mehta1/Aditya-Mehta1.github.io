@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://aditya-mehta1.github.io/images/me.jpg">
   <meta name="twitter:image:alt" content="Portrait of Aditya Mehta">
   <meta name="google-site-verification" content="7m0rUClaXCzLfUmnCJ3ze2Ym-qZ6MZRCTDiSPMgVC8o">
-  <meta name="theme-color" content="#fdfcf9">
+  <meta name="theme-color" content="#ffffff">
 
   <script type="application/ld+json">
   {
@@ -76,13 +76,14 @@
 
   <link rel="icon" href="favicon.png?v=20261019-2" type="image/png" sizes="96x96">
   <link rel="icon" href="favicon.svg?v=20261019-2" type="image/svg+xml" sizes="any">
-  <link rel="preload" href="fonts/manrope-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/cormorantgaramond-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/ubuntu-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/instrumentsans-normal-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://lastfm-last-played.biancarosa.com.br">
   <link rel="preconnect" href="https://lastfm-recently-played.jeffreyca.workers.dev">
-  <link rel="stylesheet" href="homepage.css?v=20261019">
+  <link rel="stylesheet" href="homepage.css?v=20261030-14">
 </head>
 
-<body class="notebook" data-layout="compact" data-spacing="compact">
+<body>
 <a class="skip-link" href="#main">Skip to main content</a>
 <main class="page" id="main" tabindex="-1">
 
@@ -98,35 +99,43 @@
           I spent this summer at <a href="https://moda.app/" class="moda">Moda</a>, where I:
         </p>
         <ul>
-          <li><span class="wash-phrase">Built <em>Layerize</em></span> <span class="from-to" role="img" aria-label="0 to 1">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038">launch, with some cool demos</a>)</li>
-          <li>Built evals and observability infrastructure for continual agent improvement:
+          <li><span class="wash-phrase">Built <em>Layerize</em></span> <span class="from-to" role="img" aria-label="0 to 1">0<span class="to" aria-hidden="true">&rarr;</span>1</span> (<a href="https://x.com/anvisha/status/2077086289954771038" class="preview-link" aria-controls="launch-preview" aria-expanded="false">launch, with some cool demos</a>)
+            <div class="preview-space" id="launch-preview" aria-hidden="true" inert>
+              <div class="preview-space-inner">
+                <a class="preview-card launch-card" href="https://x.com/anvisha/status/2077086289954771038" tabindex="-1" aria-label="Layerize launch video on X">
+                  <span class="launch-media">
+                    <video class="launch-video" muted loop playsinline preload="none" width="640" height="360" data-src="videos/layerize-launch.mp4" data-poster="images/layerize-launch.jpg" aria-hidden="true"></video>
+                    <span class="launch-progress"></span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </li>
+          <li>Built <span class="wash-phrase">evals</span> and observability infrastructure for continual agent improvement:
             <ul>
               <li>Simulated production environment + trace-to-env + offline evals + LLM-judges</li>
               <li>Trace intelligence; agent swarms to map-reduce traces to recurring issues</li>
             </ul>
           </li>
         </ul>
-
         </div>
-        <div class="bio-group research-group">
-        <div class="research-intro">
-          <p class="bio-label">At Caltech:</p>
-          <div class="twin-note-space" aria-hidden="true"></div>
-        </div>
+        <div class="bio-group">
+        <p class="bio-label">At Caltech:</p>
         <ul>
           <li>I've worked in <a href="https://gkioxari.github.io/">Georgia Gkioxari's</a> group on
-          <span class="twin-hover-anchor">
-            <button type="button" class="twin-link" aria-expanded="false" aria-controls="twin-card" aria-describedby="twin-preview-title"><span class="wash-phrase">evaluating and improving multimodal reasoning for LLMs</span></button>
-            <span id="twin-card" class="twin-popover" role="region" aria-label="TWIN paper preview" aria-hidden="true" inert>
-              <a class="twin-popover-surface" href="https://glab-caltech.github.io/twin/">
-                <span id="twin-preview-title" class="twin-popover-title">Same or Not? Enhancing Visual Perception in Vision-Language Models</span>
-                <span class="twin-popover-meta">
-                  <span class="twin-label">TWIN</span>
-                  <span class="twin-venue-tag">CVPR 2026 <mark>Highlight</mark></span>
-                </span>
-              </a>
-            </span>
-          </span></li>
+          <a href="https://glab-caltech.github.io/twin/" class="preview-link" aria-controls="twin-preview" aria-expanded="false" aria-describedby="twin-preview-title"><span class="wash-phrase">benchmarking</span> and <span class="wash-phrase">post-training</span> multimodal reasoning for LLMs</a>
+            <div class="preview-space" id="twin-preview" aria-hidden="true" inert>
+              <div class="preview-space-inner">
+                <a class="preview-card" href="https://glab-caltech.github.io/twin/" tabindex="-1">
+                  <img src="images/twin-480.webp" alt="" width="6244" height="2819" loading="lazy" decoding="async">
+                  <span class="preview-copy">
+                    <span class="preview-title" id="twin-preview-title">Same or Not? Enhancing Visual Perception in Vision-Language Models</span>
+                    <span class="preview-meta">TWIN &middot; CVPR 2026 &middot; <mark>Highlight</mark></span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </li>
           <li>Before that, at the <a href="https://www.vision.caltech.edu/">Caltech Vision Lab</a>,
           I combined classical CV with foundation vision models for unsupervised segmentation of microscopy images</li>
           <li>I've also enjoyed <span class="wash-phrase">TAing</span> <a href="https://www.ee.caltech.edu/academics/courses/eecmscnscsids-181">CS 148a</a>
@@ -135,7 +144,7 @@
         </div>
         <div class="bio-group">
         <p>
-           Last summer, I was with the <span class="wash-phrase">quantization team</span> at <a href="https://www.enchargeai.com/">Encharge AI</a>, a Series B AI chip startup, training ~1B-scale models.
+           Last summer, I was with the <span class="wash-phrase">quantization</span> team at <a href="https://www.enchargeai.com/">Encharge AI</a>, a Series B AI chip startup, training ~1B-scale models.
         </p>
         </div>
       </div>
@@ -143,37 +152,33 @@
 
     <aside class="hero-side">
       <a class="portrait" href="images/me.jpg">
-        <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 360px) 52px, (max-width: 560px) 64px, (max-width: 800px) 88px, 200px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
+        <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 800px) 72px, 176px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
       </a>
       <div class="contact">
-        <p>
-          always happy to connect on <a href="mailto:amehta@caltech.edu">email</a>
-          or <a href="https://x.com/amehta_05">twitter</a>
-        </p>
+        <p>always happy to connect on <a href="mailto:amehta@caltech.edu">email</a> or <a href="https://x.com/amehta_05">twitter</a>!</p>
         <nav class="links" aria-label="Profiles">
-          <a href="https://scholar.google.com/citations?user=ai569u4AAAAJ&hl=en" aria-label="Google Scholar" title="Google Scholar">
+          <a href="https://scholar.google.com/citations?user=ai569u4AAAAJ&hl=en" aria-label="Google Scholar">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14ZM12 0 0 9.5l4.8 3.9A8 8 0 0 1 12 9a8 8 0 0 1 7.2 4.4L24 9.5Z"/></svg>
           </a>
-          <a href="https://github.com/Aditya-Mehta1" aria-label="GitHub" title="GitHub">
+          <a href="https://github.com/Aditya-Mehta1" aria-label="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A12 12 0 0 0 12 .3Z"/></svg>
           </a>
-          <a href="https://www.linkedin.com/in/amehta2005/" aria-label="LinkedIn" title="LinkedIn">
+          <a href="https://www.linkedin.com/in/amehta2005/" aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.45 20.45H16.9v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm1.78 13.02H3.56V9h3.56ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
           </a>
-          <a href="https://x.com/amehta_05" aria-label="X (Twitter)" title="X (Twitter)">
+          <a href="https://x.com/amehta_05" aria-label="X (Twitter)">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.59-6.64 7.59H.47l8.6-9.83L0 1.15h7.6l5.24 6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3Z"/></svg>
           </a>
         </nav>
       </div>
       <div class="listening-section">
-      <div class="listening-heading">
-        <p class="listening-label">listening to</p>
-        <span class="listening-current" hidden>Listening now</span>
-      </div>
-      <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="Recent listening on Last.fm">
-        <span class="listening-status" aria-hidden="true">listening to</span>
-        <span class="listening-source-window"><img class="listening-source" src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=10&amp;width=260&amp;theme=transparent&amp;text_color=262626&amp;artist_color=72726f&amp;meta_color=72726f&amp;accent_color=0000&amp;loved_color=952b3e&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0&amp;stats=off&amp;footer=off" alt="My three most recent tracks on Last.fm" width="260" height="560" loading="eager" decoding="async" fetchpriority="low"></span>
-      </a>
+        <div class="listening-heading">
+          <p class="listening-label">listening to</p>
+          <span class="listening-current" hidden>now playing</span>
+        </div>
+        <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="My recent tracks on Last.fm">
+          <img class="listening-source" data-src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=10&amp;width=260&amp;theme=transparent&amp;text_color=131b33&amp;artist_color=6b7590&amp;meta_color=6b7590&amp;accent_color=0000&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0&amp;loved=off&amp;stats=off&amp;footer=off" alt="" width="260" height="560" loading="eager" decoding="async" fetchpriority="low">
+        </a>
       </div>
     </aside>
   </header>
@@ -202,7 +207,7 @@
 
       <article class="paper">
         <a class="paper-figure" href="https://glab-caltech.github.io/twin/">
-          <img src="images/twin-680.webp" srcset="images/twin-400.webp 400w, images/twin-680.webp 680w, images/twin-1020.webp 1020w, images/twin-1360.webp 1360w" sizes="(max-width: 360px) calc(100vw - 40px), (max-width: 388px) calc(100vw - 48px), (max-width: 560px) 340px, (max-width: 800px) 180px, 172px" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="6244" height="2819" loading="eager" decoding="async" fetchpriority="low">
+          <img src="images/twin-480.webp" srcset="images/twin-480.webp 480w, images/twin-720.webp 720w" sizes="(max-width: 800px) min(360px, calc(100vw - 48px)), 216px" alt="TWIN: positive and negative pairs of near-identical objects, and the dataset's category breakdown" width="6244" height="2819" loading="eager" decoding="async" fetchpriority="low">
         </a>
         <div class="paper-body">
           <h3 class="paper-title">
@@ -225,8 +230,10 @@
       </article>
 
       <article class="paper">
-        <a class="paper-figure" href="https://glab-caltech.github.io/expertlens/">
-          <img src="images/expertlens-680.webp" srcset="images/expertlens-400.webp 400w, images/expertlens-680.webp 680w, images/expertlens-1020.webp 1020w, images/expertlens-1360.webp 1360w" sizes="(max-width: 360px) calc(100vw - 40px), (max-width: 388px) calc(100vw - 48px), (max-width: 560px) 340px, (max-width: 800px) 180px, 172px" alt="ExpertLens: medical, math, and remote sensing experts with their decoded vocabulary tokens and associated images" width="2362" height="772" loading="lazy" decoding="async" fetchpriority="low">
+        <a class="paper-figure" href="https://glab-caltech.github.io/expertlens/" aria-label="ExpertLens: accuracy on math, medical, and remote sensing evals across continual training stages">
+          <video class="paper-video" muted loop playsinline preload="metadata" poster="images/expertlens-720.webp" width="2104" height="1218" aria-hidden="true">
+            <source src="videos/expertlens.mp4" type="video/mp4">
+          </video>
         </a>
         <div class="paper-body">
           <h3 class="paper-title">
@@ -254,153 +261,83 @@
 
 </main>
 
-<script src="listening.js?v=20261019"></script>
-<script src="launch-preview.js?v=20261012-7" defer></script>
+<script src="listening.js?v=20261030-6"></script>
 <script>
   (function() {
-    const sleeveMotion = window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    for (const link of document.querySelectorAll('.preview-link')) {
+      const space = document.getElementById(link.getAttribute('aria-controls'));
+      const item = link.closest('li');
+      const video = space.querySelector('video');
+      let timer;
 
-    const profiles = document.querySelector('.links');
-    const profileHint = document.createElement('span');
-    profileHint.className = 'profile-hint';
-    profileHint.setAttribute('aria-hidden', 'true');
-    profiles.append(profileHint);
-    let hintTimer;
-    let hintLink;
-
-    function positionHint() {
-      if (!hintLink) return;
-      const nav = profiles.getBoundingClientRect();
-      const link = hintLink.getBoundingClientRect();
-      const x = link.left - nav.left + link.width / 2 - profileHint.offsetWidth / 2;
-      profileHint.style.setProperty('--hint-x', Math.max(0, Math.min(nav.width - profileHint.offsetWidth, x)) + 'px');
-    }
-
-    function showHint(link, keyboard = false) {
-      clearTimeout(hintTimer);
-      profileHint.classList.toggle('is-keyboard', keyboard);
-      if (link !== hintLink) {
-        const previous = profileHint.lastElementChild;
-        profileHint.querySelectorAll('span').forEach(span => span.getAnimations().forEach(animation => animation.cancel()));
-        const next = document.createElement('span');
-        next.textContent = link.getAttribute('aria-label');
-        profileHint.replaceChildren(next);
-        if (previous && !keyboard && sleeveMotion.matches) {
-          previous.className = 'is-previous';
-          profileHint.prepend(previous);
-          previous.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-6px)', opacity: 0 }], { duration: 140, easing: 'ease-out' }).finished.then(() => previous.remove()).catch(() => {});
-          next.animate([{ transform: 'translateY(6px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 140, easing: 'ease-out' });
+      function syncVideo() {
+        if (!video) return;
+        const open = space.classList.contains('is-open');
+        if (open && !video.poster) video.poster = video.dataset.poster;
+        if (open && !document.hidden && !reducedMotion.matches) {
+          if (!video.getAttribute('src')) video.src = video.dataset.src;
+          video.play().catch(() => {});
+        } else {
+          video.pause();
         }
-        hintLink = link;
       }
-      positionHint();
-      profileHint.classList.add('is-visible');
-    }
 
-    function hideHint() {
-      clearTimeout(hintTimer);
-      profileHint.classList.remove('is-visible');
-    }
+      function setOpen(open) {
+        clearTimeout(timer);
+        space.classList.toggle('is-open', open);
+        space.inert = !open;
+        space.setAttribute('aria-hidden', String(!open));
+        link.setAttribute('aria-expanded', String(open));
+        syncVideo();
+      }
 
-    for (const link of profiles.querySelectorAll('a')) {
-      link.removeAttribute('title');
       link.addEventListener('pointerenter', event => {
         if (event.pointerType !== 'mouse') return;
-        clearTimeout(hintTimer);
-        hintTimer = setTimeout(() => showHint(link), profileHint.classList.contains('is-visible') ? 0 : 100);
+        clearTimeout(timer);
+        timer = setTimeout(() => setOpen(true), 160);
       });
-      link.addEventListener('focus', () => showHint(link, true));
-    }
-    profiles.addEventListener('pointerleave', () => {
-      if (!profiles.contains(document.activeElement)) hideHint();
-    });
-    profiles.addEventListener('focusout', event => {
-      if (!profiles.contains(event.relatedTarget) && !profiles.matches(':hover')) hideHint();
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') hideHint();
-    });
-    window.addEventListener('resize', positionHint);
-
-    const anchor = document.querySelector('.twin-hover-anchor');
-    const trigger = anchor.querySelector('.twin-link');
-    const group = anchor.closest('.research-group');
-    const card = group.querySelector('.twin-popover');
-    const space = group.querySelector('.twin-note-space');
-    let dismissed = false;
-    let cardOpen = false;
-    let cardTimer;
-    let cardClosedAt = -Infinity;
-    let cardPositionFrame;
-
-    function positionCard() {
-      const rect = space.getBoundingClientRect();
-      card.style.width = rect.width + 'px';
-      const height = card.firstElementChild.getBoundingClientRect().height;
-      card.style.left = rect.left + 'px';
-      card.style.top = rect.top + 'px';
-      group.style.setProperty('--note-height', height + 'px');
-      card.style.setProperty('--note-clip', Math.max(0, height - rect.height) + 'px');
-    }
-
-    function scheduleCardPosition() {
-      if (cardPositionFrame) return;
-      cardPositionFrame = requestAnimationFrame(() => {
-        cardPositionFrame = 0;
-        positionCard();
+      item.addEventListener('pointerenter', () => {
+        if (space.classList.contains('is-open')) clearTimeout(timer);
       });
-    }
+      item.addEventListener('pointerleave', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => setOpen(false), 220);
+      });
+      link.addEventListener('focus', () => setOpen(true));
+      item.addEventListener('focusout', event => {
+        if (!item.contains(event.relatedTarget)) setOpen(false);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setOpen(false);
+      });
 
-    function setCard(open) {
-      clearTimeout(cardTimer);
-      if (open === cardOpen) return;
-      cardOpen = open;
-      if (!open) cardClosedAt = performance.now();
-      group.classList.toggle('is-open', open);
-      if (open) positionCard();
-      trigger.setAttribute('aria-expanded', String(open));
-      card.setAttribute('aria-hidden', String(!open));
-      card.inert = !open;
+      if (video) {
+        const progress = space.querySelector('.launch-progress');
+        video.addEventListener('timeupdate', () => {
+          progress.style.transform = 'scaleX(' + (video.duration ? video.currentTime / video.duration : 0) + ')';
+        });
+        reducedMotion.addEventListener('change', syncVideo);
+        document.addEventListener('visibilitychange', syncVideo);
+      }
     }
+  })();
 
-    anchor.addEventListener('pointerenter', event => {
-      if (event.pointerType === 'mouse' && !dismissed) {
-        const delay = performance.now() - cardClosedAt < 500 ? 0 : 160;
-        cardTimer = setTimeout(() => setCard(true), delay);
-      }
-    });
-    anchor.addEventListener('pointerleave', () => {
-      if (!cardOpen) clearTimeout(cardTimer);
-    });
-    group.addEventListener('pointerenter', () => {
-      dismissed = false;
-      if (cardOpen) clearTimeout(cardTimer);
-    });
-    group.addEventListener('pointerleave', () => {
-      clearTimeout(cardTimer);
-      if (!anchor.contains(document.activeElement) || dismissed) cardTimer = setTimeout(() => setCard(false), 100);
-    });
-    trigger.addEventListener('focus', () => { dismissed = false; setCard(true); });
-    group.addEventListener('focusout', event => {
-      if (!group.contains(event.relatedTarget) && !group.matches(':hover')) setCard(false);
-    });
-    trigger.addEventListener('click', () => { dismissed = false; setCard(true); });
-    document.addEventListener('pointerdown', event => {
-      if (!group.contains(event.target)) setCard(false);
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        if (card.contains(document.activeElement)) trigger.focus({ preventScroll: true });
-        dismissed = true;
-        setCard(false);
-      }
-    });
-    const noteLayoutObserver = new ResizeObserver(positionCard);
-    noteLayoutObserver.observe(space);
-    noteLayoutObserver.observe(group.closest('.bio'));
-    window.addEventListener('scroll', scheduleCardPosition, { passive: true });
-    window.addEventListener('resize', scheduleCardPosition);
-    document.fonts.ready.then(() => { if (cardOpen) positionCard(); });
+  (function() {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    for (const video of document.querySelectorAll('.paper-video')) {
+      let visible = false;
+      const sync = () => {
+        if (visible && !document.hidden && !reducedMotion.matches) video.play().catch(() => {});
+        else video.pause();
+      };
+      new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        sync();
+      }).observe(video);
+      reducedMotion.addEventListener('change', sync);
+      document.addEventListener('visibilitychange', sync);
+    }
   })();
 </script>
 </body>
