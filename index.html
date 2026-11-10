@@ -76,11 +76,12 @@
 
   <link rel="icon" href="favicon.png?v=20261019-2" type="image/png" sizes="96x96">
   <link rel="icon" href="favicon.svg?v=20261019-2" type="image/svg+xml" sizes="any">
-  <link rel="preload" href="fonts/ubuntu-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/instrumentsans-normal-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/instrumentsans-normal-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/departuremono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://lastfm-last-played.biancarosa.com.br">
   <link rel="preconnect" href="https://lastfm-recently-played.jeffreyca.workers.dev">
-  <link rel="stylesheet" href="homepage.css?v=20261030-14">
+  <link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
+  <link rel="stylesheet" href="homepage.css?v=20261109-2">
 </head>
 
 <body>
@@ -150,10 +151,10 @@
       </div>
     </div>
 
-    <aside class="hero-side">
-      <a class="portrait" href="images/me.jpg">
-        <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 800px) 72px, 176px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
-      </a>
+    <aside class="hero-mark">
+      <div class="portrait">
+        <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 800px) 72px, 168px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
+      </div>
       <div class="contact">
         <p>always happy to connect on <a href="mailto:amehta@caltech.edu">email</a> or <a href="https://x.com/amehta_05">twitter</a>!</p>
         <nav class="links" aria-label="Profiles">
@@ -171,14 +172,22 @@
           </a>
         </nav>
       </div>
+    </aside>
+
+    <aside class="hero-side">
       <div class="listening-section">
         <div class="listening-heading">
           <p class="listening-label">listening to</p>
           <span class="listening-current" hidden>now playing</span>
         </div>
         <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="My recent tracks on Last.fm">
-          <img class="listening-source" data-src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=10&amp;width=260&amp;theme=transparent&amp;text_color=131b33&amp;artist_color=6b7590&amp;meta_color=6b7590&amp;accent_color=0000&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0&amp;loved=off&amp;stats=off&amp;footer=off" alt="" width="260" height="560" loading="eager" decoding="async" fetchpriority="low">
+          <span class="listening-cover" aria-hidden="true"></span>
+          <span class="listening-now" aria-hidden="true"></span>
         </a>
+        <div class="listening-earlier">
+          <a class="listening-strip" href="https://www.last.fm/user/aditya-mehta" tabindex="-1" aria-hidden="true"></a>
+          <img class="listening-source" data-src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=10&amp;width=260&amp;theme=transparent&amp;text_color=111111&amp;artist_color=767676&amp;meta_color=767676&amp;accent_color=0000&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0&amp;loved=off&amp;stats=off&amp;footer=off" alt="" width="260" height="560" loading="eager" decoding="async" fetchpriority="low">
+        </div>
       </div>
     </aside>
   </header>
@@ -261,7 +270,7 @@
 
 </main>
 
-<script src="listening.js?v=20261030-6"></script>
+<script src="listening.js?v=20261109-2"></script>
 <script>
   (function() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -295,14 +304,14 @@
       link.addEventListener('pointerenter', event => {
         if (event.pointerType !== 'mouse') return;
         clearTimeout(timer);
-        timer = setTimeout(() => setOpen(true), 160);
+        timer = setTimeout(() => setOpen(true), 80);
       });
       item.addEventListener('pointerenter', () => {
         if (space.classList.contains('is-open')) clearTimeout(timer);
       });
       item.addEventListener('pointerleave', () => {
         clearTimeout(timer);
-        timer = setTimeout(() => setOpen(false), 220);
+        timer = setTimeout(() => setOpen(false), 160);
       });
       link.addEventListener('focus', () => setOpen(true));
       item.addEventListener('focusout', event => {
