@@ -18,12 +18,13 @@ class Element {
   remove() { this.removed = true; }
   setAttribute(key, value) { this.attrs[key] = value; }
   addEventListener(type, listener) { this.listeners[type] = listener; }
+  scrollTo() {}
   querySelectorAll() { return []; }
   getBoundingClientRect() { return { left: 10, right: 178, top: 400, bottom: 436 }; }
   contains() { return false; }
 }
 
-const nodes = Object.fromEntries(['section', 'preview', 'cover', 'now', 'earlier', 'strip', 'current', 'theme']
+const nodes = Object.fromEntries(['section', 'preview', 'cover', 'now', 'earlier', 'strip', 'toggle', 'current', 'theme']
   .map(key => ['.listening-' + key, new Element()]));
 for (const element of Object.values(nodes)) element.querySelector = key => nodes[key];
 let now = 0;
@@ -69,7 +70,7 @@ const source = fs.readFileSync(process.argv[2] || 'listening.js', 'utf8');
 assert.match(source, /\}\)\(\);\s*$/);
 vm.runInContext(source.replace(/\}\)\(\);\s*$/, `
   globalThis.probe = { refreshStatus, openHistory, closeHistory, loadMore,
-    get: () => ({ open, history, statusPending, more, historyStatus, historyFailed, surface, tracks, expanded: strip.attrs['aria-expanded'] }) };
+    get: () => ({ open, history, statusPending, more, historyStatus, historyFailed, list, tracks, expanded: toggle.attrs['aria-expanded'] }) };
 })();`), context);
 
 (async () => {
@@ -111,8 +112,8 @@ vm.runInContext(source.replace(/\}\)\(\);\s*$/, `
   }
   assert.equal(state.more.disabled, false);
   assert.equal(requests, 3, 'Countdown ending must not trigger an automatic retry');
-  state.surface.scrollTop = state.surface.scrollHeight;
-  state.surface.listeners.scroll();
+  state.list.scrollTop = state.list.scrollHeight;
+  state.list.listeners.scroll();
   assert.equal(requests, 3, 'A layout or scroll event after a failure must not retry');
   assert.equal(state.historyFailed, true);
   limited = false;

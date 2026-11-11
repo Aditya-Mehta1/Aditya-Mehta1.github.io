@@ -57,6 +57,10 @@ Never describe a planned control as already enforced.
   request; paginate the normalized snapshot locally. Caller page choices MUST NOT
   create extra upstream calls while that snapshot remains cached. Cache only
   successful normalized public data for 60 seconds.
+- Page one MAY also return `albums`: the most recent play of each distinct album
+  in that same snapshot, in the normalized track shape. It MUST be derived from
+  the snapshot only and MUST NOT add an upstream call, parameter, route or cache
+  key. The website uses it to list recent albums without fetching older pages.
   Never cache credentials, raw upstream failures or caller-specific authorization.
 - MUST retain origin and visitor checks on cache hits. Browser-facing responses
   and errors MUST use `Cache-Control: no-store`; 429 MUST carry `Retry-After` and

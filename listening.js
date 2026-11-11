@@ -6,14 +6,18 @@
   const caption = preview.querySelector('.listening-now');
   const earlier = section.querySelector('.listening-earlier');
   const strip = earlier.querySelector('.listening-strip');
+  const toggle = earlier.querySelector('.listening-toggle');
   const current = section.querySelector('.listening-current');
   const themeToggle = section.querySelector('.listening-theme');
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const endpoint = 'https://ps-website-helper.track-aditya-mehta.workers.dev/api/listening';
+  const profile = preview.href;
   const canHover = window.matchMedia('(hover: hover)');
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
   const bayer = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60, 28, 52, 20, 62, 30, 54, 22, 3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21];
-  const stripCount = 5;
-  const columnRows = 5;
+  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const artworkHost = /^https:\/\/lastfm(?:-img)?\.freetls\.fastly\.net\//;
+  const thumbStep = 44;
   const inset = 17;
   const haloCell = 2;
   const haloReach = 20;
@@ -21,17 +25,32 @@
   const haloDensity = .66;
   const halo = document.createElement('canvas');
   const disc = document.createElement('span');
+  const sleeve = document.createElement('span');
+  const warmed = new Set();
+  const runs = new Map();
   let statusPending = false;
   let statusCheckedAt = -Infinity;
   let artwork;
   let haloSize = 0;
+  let live = null;
+  let fresh = false;
+  let summary = [];
   let tracks = [];
+  let albums = [];
+  let active = null;
+  let following = true;
+  let stripKeys;
   let nextPage = null;
   let paging = false;
   let blockedUntil = 0;
   let retryTimer;
   let staleTimer;
+  let flourishTimer;
   let surface;
+  let albumRow;
+  let list;
+  let lastRun;
+  let seeking = null;
   let more;
   let historyStatus;
   let historyFailed = false;
@@ -44,11 +63,18 @@
   let tintTimer;
   let lit = null;
   let immersive = false;
+  let dragFrom = null;
+  let dragged = false;
+  let wheelTotal = 0;
+  let wheelLast = 0;
+  let wheelSteppedAt = null;
+  let wheelIdle;
 
   section.classList.add('is-live');
   halo.className = 'listening-halo';
   disc.className = 'listening-disc';
-  cover.append(halo, disc);
+  sleeve.className = 'listening-sleeve';
+  cover.append(halo, disc, sleeve);
   document.querySelectorAll('.wash-phrase, mark').forEach((element, index) => element.style.setProperty('--order', index));
 
   let accentPicker;
@@ -155,13 +181,14 @@
     context.putImageData(frame, 0, 0);
   }
 
-  function showArtwork(url) {
+  function showArtwork(url, direction = 0) {
     if (url === artwork) return;
     artwork = url;
     lit = null;
     if (!url) {
+      sleeve.replaceChildren();
+      section.classList.remove('has-cover');
       paint({});
-      section.classList.add('no-cover');
       return;
     }
     const sizes = [url.replace('/300x300/', '/500x500/'), url];
@@ -169,34 +196,99 @@
     image.className = 'listening-artwork';
     image.alt = '';
     image.decoding = 'async';
+    image.draggable = false;
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
       if (artwork !== url) return;
-      const previous = cover.querySelectorAll('.listening-artwork');
-      cover.append(image);
-      section.classList.remove('no-cover');
+      const previous = [...sleeve.children];
+      if (direction && !calm.matches) {
+        image.classList.add('is-sliding');
+        image.style.setProperty('--from', direction * 100 + '%');
+        flourish();
+      }
+      sleeve.append(image);
       section.classList.add('has-cover');
       colour(image);
-      requestAnimationFrame(() => requestAnimationFrame(() => image.classList.add('is-shown')));
-      setTimeout(() => previous.forEach(element => element.remove()), 300);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        image.classList.add('is-shown');
+        for (const element of previous) {
+          element.style.setProperty('--to', direction * -100 + '%');
+          element.classList.add('is-leaving');
+        }
+      }));
+      setTimeout(() => previous.forEach(element => element.remove()), 380);
     });
     image.addEventListener('error', () => {
       if (artwork !== url) return;
-      if (sizes.length) image.src = sizes.shift();
-      else if (!section.classList.contains('has-cover')) section.classList.add('no-cover');
+      if (sizes.length) {
+        image.src = sizes.shift();
+        return;
+      }
+      lit = null;
+      sleeve.replaceChildren();
+      section.classList.remove('has-cover');
+      paint({});
     });
     image.src = sizes.shift();
   }
 
-  function showTrack(title, performer, art) {
-    const name = document.createElement('span');
-    const artist = document.createElement('span');
-    name.className = 'listening-track';
-    artist.className = 'listening-artist';
-    name.textContent = title;
-    artist.textContent = performer;
-    caption.replaceChildren(name, artist);
-    showArtwork(art);
+  function flourish() {
+    clearTimeout(flourishTimer);
+    cover.classList.remove('is-out');
+    cover.classList.add('is-switching');
+    flourishTimer = setTimeout(() => {
+      cover.classList.remove('is-switching');
+      cover.classList.add('is-out');
+      flourishTimer = setTimeout(() => cover.classList.remove('is-out'), 900);
+    }, 340);
+  }
+
+  function bump(by) {
+    cover.style.setProperty('--bump', by * -6 + 'px');
+    cover.classList.remove('is-bumping');
+    void cover.offsetWidth;
+    cover.classList.add('is-bumping');
+  }
+
+  function warm(album) {
+    if (!album?.image || warmed.has(album.image)) return;
+    warmed.add(album.image);
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+    image.src = album.image.replace('/300x300/', '/500x500/');
+  }
+
+  function ago(iso) {
+    const then = Date.parse(iso);
+    if (!Number.isFinite(then)) return '';
+    const minutes = Math.max(1, Math.round((Date.now() - then) / 60000));
+    if (minutes < 60) return minutes + 'm';
+    if (minutes < 1440) return Math.floor(minutes / 60) + 'h';
+    if (minutes < 10080) return Math.floor(minutes / 1440) + 'd';
+    const date = new Date(then);
+    return months[date.getMonth()] + ' ' + date.getDate();
+  }
+
+  function albumKey(track) {
+    return JSON.stringify([track.album, track.image || track.artist]);
+  }
+
+  function identity(track) {
+    return JSON.stringify([track.playedAt, track.name, track.artist]);
+  }
+
+  function clean(track) {
+    if (typeof track?.name !== 'string' || !track.name || typeof track.artist !== 'string') return null;
+    return {
+      name: track.name,
+      artist: track.artist,
+      album: typeof track.album === 'string' && track.album ? track.album : null,
+      url: typeof track.url === 'string' && track.url.startsWith('https://www.last.fm/') ? track.url : null,
+      image: typeof track.image === 'string' && artworkHost.test(track.image) ? track.image : null,
+      playedAt: typeof track.playedAt === 'string' ? track.playedAt : null,
+      nowPlaying: track.nowPlaying === true,
+    };
   }
 
   async function getPage(page) {
@@ -215,7 +307,139 @@
       || (data.nextPage !== null && (data.nextPage !== page + 1 || data.nextPage > 10))) {
       throw new Error('Listening history unavailable');
     }
-    return data;
+    return {
+      fetchedAt: data.fetchedAt, nextPage: data.nextPage, tracks: data.tracks.map(clean).filter(Boolean),
+      albums: Array.isArray(data.albums) && data.albums.length <= 101 ? data.albums.map(clean).filter(Boolean) : [],
+    };
+  }
+
+  function collect() {
+    const found = new Map();
+    for (const track of [live, ...summary, ...tracks]) {
+      const key = track && albumKey(track);
+      if (key && !found.has(key)) found.set(key, { ...track, key });
+    }
+    albums = [...found.values()];
+  }
+
+  function position() {
+    return albums.findIndex(album => album.key === active);
+  }
+
+  function thumb(album, jump) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'listening-thumb';
+    button.dataset.key = album.key;
+    button.title = (album.album || album.name) + ' — ' + album.artist;
+    button.setAttribute('aria-label', 'Show ' + (album.album || album.name) + ' by ' + album.artist);
+    if (album.image) {
+      const image = new Image();
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.draggable = false;
+      image.addEventListener('error', () => {
+        if (image.src === album.image) image.hidden = true;
+        else image.src = album.image;
+      });
+      image.src = album.image.replace('/300x300/', '/174s/');
+      button.append(image);
+    }
+    button.addEventListener('click', () => {
+      activate(album.key);
+      if (jump) seek(album.key);
+    });
+    return button;
+  }
+
+  function mark() {
+    for (const button of earlier.querySelectorAll('.listening-thumb')) {
+      const selected = button.dataset.key === active;
+      button.classList.toggle('is-active', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    }
+  }
+
+  function show(direction = 0) {
+    const index = position();
+    const album = albums[index];
+    if (!album) return;
+    const playing = album.nowPlaying && fresh;
+    const name = document.createElement('span');
+    const artist = document.createElement('span');
+    current.hidden = !playing;
+    section.classList.toggle('is-playing', playing);
+    name.className = 'listening-track';
+    artist.className = 'listening-artist';
+    name.textContent = album.name;
+    artist.textContent = album.artist;
+    caption.replaceChildren(name, artist);
+    preview.href = album.url || profile;
+    preview.setAttribute('aria-label', album.name + ' by ' + album.artist + ' on Last.fm');
+    showArtwork(album.image, direction);
+    mark();
+    strip.scrollTo({ left: Math.max(0, position() - 1) * thumbStep });
+  }
+
+  function render() {
+    collect();
+    if (following || !albums.some(album => album.key === active)) {
+      following = true;
+      active = albums[0]?.key ?? null;
+    }
+    const keys = albums.map(album => album.key).join('\n');
+    if (keys !== stripKeys) {
+      stripKeys = keys;
+      strip.replaceChildren(...albums.map(album => thumb(album, false)));
+    }
+    if (albumRow && keys !== albumRow.dataset.keys) {
+      albumRow.dataset.keys = keys;
+      albumRow.replaceChildren(...albums.map(album => thumb(album, true)));
+    }
+    show();
+  }
+
+  function activate(key) {
+    const from = position();
+    const to = albums.findIndex(album => album.key === key);
+    if (to < 0 || to === from) return;
+    active = key;
+    following = to === 0;
+    show(Math.sign(to - from));
+    warm(albums[to + 1]);
+    warm(albums[to - 1]);
+  }
+
+  function seek(key) {
+    const run = runs.get(key);
+    const reachable = run && run.offsetTop <= list.scrollHeight - list.clientHeight;
+    seeking = reachable || nextPage === null ? null : key;
+    if (run) list.scrollTo({ top: run.offsetTop });
+    if (seeking) loadMore();
+  }
+
+  function step(by) {
+    const next = albums[position() + by];
+    if (next) activate(next.key);
+    else bump(by);
+  }
+
+  function merge(incoming) {
+    const known = new Set(tracks.map(identity));
+    const past = incoming.tracks.filter(track => !track.nowPlaying);
+    if (!past.some(track => known.has(identity(track)))) {
+      tracks = [];
+      known.clear();
+      nextPage = incoming.nextPage;
+    }
+    const added = past.filter(track => {
+      const key = identity(track);
+      if (known.has(key)) return false;
+      known.add(key);
+      return true;
+    });
+    tracks = [...added, ...tracks];
   }
 
   async function refreshStatus() {
@@ -225,73 +449,45 @@
     try {
       const data = await getPage(1);
       if (open || paging) return;
-      const track = data.tracks[0];
-      current.hidden = !track?.nowPlaying || Date.now() - Date.parse(data.fetchedAt) > 120000;
+      const age = Date.now() - Date.parse(data.fetchedAt);
+      live = data.tracks.find(track => track.nowPlaying) || null;
+      fresh = Boolean(live) && age <= 120000;
       clearTimeout(staleTimer);
-      if (!current.hidden) {
+      if (fresh) {
         staleTimer = setTimeout(() => {
-          current.hidden = true;
-          section.classList.remove('is-playing');
-        }, Math.max(0, 120000 - (Date.now() - Date.parse(data.fetchedAt))));
+          fresh = false;
+          show();
+        }, Math.max(0, 120000 - age));
       }
-      if (track) showTrack(track.name, track.artist, track.image);
-      strip.replaceChildren(...data.tracks.slice(0, stripCount).map((track, index) => row(track, index, false)));
-      tracks = [];
-      nextPage = data.nextPage;
+      summary = data.albums;
+      merge(data);
       buildHistory();
-      appendTracks(data.tracks);
-      section.hidden = data.tracks.length === 0;
+      render();
+      section.hidden = albums.length === 0;
     } catch {
-      current.hidden = true;
-      if (!tracks.length) section.hidden = true;
+      fresh = false;
+      if (albums.length) show();
+      else section.hidden = true;
     } finally {
-      section.classList.toggle('is-playing', !current.hidden);
       statusPending = false;
     }
   }
 
-  function row(track, index, linked) {
-    const element = document.createElement(linked ? 'a' : 'span');
-    element.className = 'listening-row';
-    element.dataset.index = index;
-    if (linked) element.href = track.url || preview.href;
-    const art = document.createElement('span');
-    art.className = 'listening-art';
-    if (track.image) {
-      const image = new Image();
-      image.alt = '';
-      image.loading = 'lazy';
-      image.decoding = 'async';
-      image.src = track.image;
-      image.addEventListener('error', () => { image.hidden = true; });
-      art.append(image);
-    }
-    element.append(art);
-    if (linked) {
-      const copy = document.createElement('span');
-      copy.className = 'listening-copy';
-      const name = document.createElement('span');
-      const artist = document.createElement('span');
-      name.className = 'listening-track';
-      artist.className = 'listening-artist';
-      name.textContent = track.name;
-      artist.textContent = track.artist;
-      copy.append(name, artist);
-      element.append(copy);
-    }
-    return element;
-  }
-
   function positionHistory() {
     if (!history || !open) return;
-    history.classList.toggle('is-single', window.innerWidth < 600);
-    const origin = strip.getBoundingClientRect();
+    const origin = earlier.getBoundingClientRect();
+    history.style.setProperty('--room', Math.round(window.innerHeight - origin.top + inset - 8) + 'px');
     const width = history.offsetWidth;
     const height = history.offsetHeight;
     const left = Math.max(8, Math.min(origin.left - inset, window.innerWidth - width - 8));
     const top = Math.max(8, Math.min(origin.top - inset, window.innerHeight - height - 8));
+    const player = section.getBoundingClientRect();
     history.style.left = left + 'px';
     history.style.top = top + 'px';
+    history.style.setProperty('--hole-x', Math.round(player.left - 12) + 'px');
+    history.style.setProperty('--hole-y', Math.round(player.top - 12) + 'px');
+    history.style.setProperty('--hole-w', Math.round(player.width + 84) + 'px');
+    history.style.setProperty('--hole-h', Math.round(Math.max(0, top - player.top + 12)) + 'px');
     const edges = [origin.top - top, left + width - origin.right, top + height - origin.bottom, origin.left - left];
     history.style.setProperty('--origin', edges.map(value => Math.max(0, value) + 'px').join(' '));
   }
@@ -314,13 +510,13 @@
     history.hidden = false;
     history.inert = false;
     history.setAttribute('aria-hidden', 'false');
-    strip.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-expanded', 'true');
     if (history.showPopover && !history.matches(':popover-open')) history.showPopover();
     positionHistory();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (open) {
         history.classList.add('is-open');
-        if (!historyFailed && surface.scrollHeight <= surface.clientHeight + 48) loadMore();
+        if (!historyFailed && list.scrollHeight <= list.clientHeight + 48) loadMore();
       }
     }));
   }
@@ -330,9 +526,10 @@
     clearTimeout(closeTimer);
     if (!history || !open) return;
     open = false;
+    seeking = null;
     history.classList.remove('is-open');
-    strip.setAttribute('aria-expanded', 'false');
-    if (history.contains(document.activeElement)) strip.focus({ preventScroll: true });
+    toggle.setAttribute('aria-expanded', 'false');
+    if (history.contains(document.activeElement)) toggle.focus({ preventScroll: true });
     history.inert = true;
     history.setAttribute('aria-hidden', 'true');
     clearTimeout(hideTimer);
@@ -346,6 +543,9 @@
     if (history) history.remove();
     clearTimeout(retryTimer);
     historyFailed = false;
+    seeking = null;
+    runs.clear();
+    lastRun = undefined;
     history = document.createElement('div');
     history.id = 'listening-history';
     history.className = 'listening-history';
@@ -357,55 +557,79 @@
     surface.className = 'history-surface';
     surface.setAttribute('role', 'region');
     surface.setAttribute('aria-label', 'Recent listening history');
+    albumRow = document.createElement('div');
+    albumRow.className = 'history-albums';
+    albumRow.setAttribute('role', 'group');
+    albumRow.setAttribute('aria-label', 'Recent albums');
+    list = document.createElement('div');
+    list.className = 'history-list';
     more = document.createElement('button');
     more.type = 'button';
     more.className = 'listening-more';
     more.setAttribute('aria-describedby', 'listening-status');
     more.textContent = 'Load more';
     more.addEventListener('click', loadMore);
-    surface.addEventListener('scroll', () => {
-      if (!historyFailed && surface.scrollTop > 0 && surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 48) loadMore();
+    list.addEventListener('scroll', () => {
+      if (!historyFailed && list.scrollTop > 0 && list.scrollTop + list.clientHeight >= list.scrollHeight - 48) loadMore();
     }, { passive: true });
     historyStatus = document.createElement('p');
     historyStatus.id = 'listening-status';
     historyStatus.className = 'listening-status';
     historyStatus.setAttribute('role', 'status');
     historyStatus.hidden = true;
-    surface.append(more, historyStatus);
+    list.append(more, historyStatus);
+    surface.append(albumRow, list);
     history.append(surface);
     earlier.append(history);
+    appendRows(tracks);
   }
 
-  function appendTracks(incoming) {
-    const seen = new Set(tracks.map(track => JSON.stringify([track.playedAt, track.name, track.artist])));
-    const added = incoming.filter(track => {
-      if (track.nowPlaying) return false;
-      const key = JSON.stringify([track.playedAt, track.name, track.artist]);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-    for (let start = 0; start < added.length; start += columnRows) {
-      const column = document.createElement('div');
-      column.className = 'history-column';
-      for (let index = start; index < Math.min(added.length, start + columnRows); index++) {
-        column.append(row(added[index], tracks.length + index, true));
+  function appendRows(added) {
+    for (const track of added) {
+      const key = albumKey(track);
+      if (!lastRun || lastRun.key !== key || lastRun.artist !== track.artist) {
+        const run = document.createElement('div');
+        const body = document.createElement('div');
+        const artist = document.createElement('p');
+        run.className = 'history-run';
+        body.className = 'history-tracks';
+        artist.className = 'history-artist';
+        artist.textContent = track.album ? track.artist + ' · ' + track.album : track.artist;
+        body.append(artist);
+        run.append(thumb({ ...track, key }, false), body);
+        list.insertBefore(run, more);
+        if (!runs.has(key)) runs.set(key, run);
+        lastRun = { key, artist: track.artist, body };
       }
-      surface.insertBefore(column, more);
+      const row = document.createElement('a');
+      const name = document.createElement('span');
+      row.className = 'history-track';
+      row.href = track.url || profile;
+      name.className = 'history-name';
+      name.textContent = track.name;
+      row.append(name);
+      if (track.playedAt) {
+        const time = document.createElement('time');
+        time.dateTime = track.playedAt;
+        time.textContent = ago(track.playedAt);
+        row.append(time);
+      }
+      lastRun.body.append(row);
     }
-    tracks.push(...added);
     more.hidden = nextPage === null;
-    if (nextPage === null) {
+    if (nextPage === null && !list.dataset.ended) {
       const end = document.createElement('p');
+      list.dataset.ended = 'true';
       end.className = 'listening-end';
       end.textContent = tracks.length ? 'End of recent history' : 'No recent plays';
-      surface.append(end);
+      list.append(end);
     }
     schedulePosition();
   }
 
   async function loadMore() {
     if (!open || paging || more.disabled || nextPage === null) return;
+    let loaded = false;
     paging = true;
     more.disabled = true;
     more.textContent = 'Loading…';
@@ -414,9 +638,19 @@
     historyStatus.hidden = true;
     try {
       const data = await getPage(nextPage);
+      const known = new Set(tracks.map(identity));
+      const added = data.tracks.filter(track => {
+        const key = identity(track);
+        if (track.nowPlaying || known.has(key)) return false;
+        known.add(key);
+        return true;
+      });
       nextPage = data.nextPage;
-      appendTracks(data.tracks);
+      tracks.push(...added);
+      appendRows(added);
+      render();
       more.textContent = 'Load more';
+      loaded = true;
     } catch {
       historyFailed = true;
       historyStatus.textContent = Date.now() < blockedUntil
@@ -429,6 +663,9 @@
       more.disabled = false;
       if (Date.now() < blockedUntil) showCooldown();
     }
+    if (!loaded || !open) seeking = null;
+    else if (seeking) seek(seeking);
+    else if (list.scrollHeight <= list.clientHeight + 48) loadMore();
   }
 
   function showCooldown() {
@@ -440,15 +677,64 @@
     else historyStatus.textContent = 'You can try again now.';
   }
 
+  section.addEventListener('pointerenter', () => {
+    refreshStatus();
+    warm(albums[position() + 1]);
+  });
+  preview.addEventListener('pointerdown', event => {
+    dragged = false;
+    dragFrom = event.pointerType === 'mouse' && event.button !== 0 ? null : event.clientX;
+  });
+  preview.addEventListener('pointermove', event => {
+    if (dragFrom === null || albums.length < 2 || Math.abs(event.clientX - dragFrom) < 28) return;
+    step(event.clientX < dragFrom ? 1 : -1);
+    dragFrom = null;
+    dragged = true;
+  });
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
+    preview.addEventListener(type, () => { dragFrom = null; });
+  }
+  preview.addEventListener('click', event => {
+    if (dragged) event.preventDefault();
+    dragged = false;
+  });
+  preview.addEventListener('dragstart', event => event.preventDefault());
+  preview.addEventListener('wheel', event => {
+    if (albums.length < 2 || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    const size = Math.abs(event.deltaX);
+    clearTimeout(wheelIdle);
+    wheelIdle = setTimeout(() => {
+      wheelTotal = 0;
+      wheelLast = 0;
+      wheelSteppedAt = null;
+    }, 140);
+    if (wheelSteppedAt !== null && event.timeStamp - wheelSteppedAt > 320 && size > wheelLast * 2 + 8) {
+      wheelTotal = 0;
+      wheelSteppedAt = null;
+    }
+    wheelLast = size;
+    if (wheelSteppedAt !== null) return;
+    wheelTotal += event.deltaX;
+    if (Math.abs(wheelTotal) < 36) return;
+    wheelSteppedAt = event.timeStamp;
+    step(Math.sign(wheelTotal));
+  }, { passive: false });
+  preview.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+    step(event.key === 'ArrowRight' ? 1 : -1);
+  });
+  cover.addEventListener('animationend', () => cover.classList.remove('is-bumping'));
   themeToggle.addEventListener('click', () => {
     immersive = !immersive;
     themeToggle.setAttribute('aria-pressed', String(immersive));
     if (lit) colour(lit);
     else if (!immersive) paint({});
   });
-  section.addEventListener('pointerenter', refreshStatus);
-  strip.addEventListener('click', () => {
-    if (!open) openHistory();
+  toggle.addEventListener('click', () => {
+    if (open) closeHistory();
+    else openHistory();
   });
   earlier.addEventListener('pointerenter', event => {
     clearTimeout(closeTimer);
@@ -458,7 +744,7 @@
   });
   earlier.addEventListener('pointerleave', event => {
     clearTimeout(intentTimer);
-    if (event.pointerType === 'mouse' && !earlier.contains(document.activeElement)) {
+    if (event.pointerType === 'mouse' && !earlier.querySelector(':focus-visible')) {
       closeTimer = setTimeout(closeHistory, 160);
     }
   });

@@ -80,7 +80,7 @@
   <link rel="preload" href="fonts/departuremono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://ps-website-helper.track-aditya-mehta.workers.dev">
   <link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
-  <link rel="stylesheet" href="homepage.css?v=20261111-6">
+  <link rel="stylesheet" href="homepage.css?v=20261111-7">
 </head>
 
 <body>
@@ -185,7 +185,8 @@
           <span class="listening-now" aria-hidden="true"></span>
         </a>
         <div class="listening-earlier">
-          <button class="listening-strip" type="button" aria-label="Show listening history" aria-controls="listening-history" aria-expanded="false"></button>
+          <div class="listening-strip" role="group" aria-label="Recent albums"></div>
+          <button class="listening-toggle" type="button" aria-label="Show listening history" aria-controls="listening-history" aria-expanded="false"></button>
         </div>
       </div>
     </aside>
@@ -269,7 +270,7 @@
 
 </main>
 
-<script src="listening.js?v=20261111-6"></script>
+<script src="listening.js?v=20261111-7"></script>
 <script>
   (function() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
