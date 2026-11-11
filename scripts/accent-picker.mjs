@@ -95,12 +95,8 @@ export function pickAccent(image) {
   context.drawImage(image, 0, 0, size, size);
   const accent = selectAccent(context.getImageData(0, 0, size, size));
   if (!accent) return { wash: '#e9e9e9', accent: '#111111', tone: '#9a9a9a' };
-  const chroma = accent.c + Math.min(.035, Math.max(0, .12 - accent.c), accent.c * .5);
-  const lightness = Math.max(.48, Math.min(.65, accent.l));
   const neutral = accent.c < .015;
-  const color = neutral
-    ? `oklch(18% ${Math.min(accent.background.c * .25, .018).toFixed(4)} ${accent.background.h.toFixed(2)})`
-    : `oklch(${(lightness * 100).toFixed(2)}% ${chroma.toFixed(4)} ${accent.h.toFixed(2)})`;
+  const color = `rgb(${accent.rgb.join(' ')})`;
   const wash = neutral
     ? `color-mix(in oklab, #fff ${accent.secondary.c > .04 ? 70 : 87}%, rgb(${accent.secondary.rgb.join(' ')}))`
     : `color-mix(in oklab, #fff 65%, ${color})`;
