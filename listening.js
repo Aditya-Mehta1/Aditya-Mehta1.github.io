@@ -45,70 +45,23 @@
   cover.append(halo, disc);
   document.querySelectorAll('.wash-phrase, mark').forEach((element, index) => element.style.setProperty('--order', index));
 
-  function linear(channel) {
-    const value = channel / 255;
-    return value <= .04045 ? value / 12.92 : Math.pow((value + .055) / 1.055, 2.4);
-  }
+  let accentPicker;
+  const accentCache = new Map();
 
-  function polar(red, green, blue) {
-    const r = linear(red);
-    const g = linear(green);
-    const b = linear(blue);
-    const l = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b);
-    const m = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b);
-    const s = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
-    const lightness = .2104542553 * l + .793617785 * m - .0040720468 * s;
-    const a = 1.9779984951 * l - 2.428592205 * m + .4505937099 * s;
-    const c = .0259040371 * l + .7827717662 * m - .808675766 * s;
-    return [lightness, Math.hypot(a, c), Math.atan2(c, a)];
-  }
-
-  function palette(image) {
-    const size = 24;
-    const bins = 24;
-    const scratch = document.createElement('canvas');
-    scratch.width = scratch.height = size;
-    const context = scratch.getContext('2d', { willReadFrequently: true });
-    context.drawImage(image, 0, 0, size, size);
-    const pixels = context.getImageData(0, 0, size, size).data;
-    const weight = new Float64Array(bins);
-    const x = new Float64Array(bins);
-    const y = new Float64Array(bins);
-    const chroma = new Float64Array(bins);
-    for (let index = 0; index < size * size; index++) {
-      const [lightness, colour, angle] = polar(pixels[index * 4], pixels[index * 4 + 1], pixels[index * 4 + 2]);
-      const share = Math.pow(colour, 1.5) * (lightness > .2 && lightness < .93 ? 1 : .25);
-      const bin = Math.floor(((angle / (2 * Math.PI) + 1) % 1) * bins) % bins;
-      weight[bin] += share;
-      x[bin] += Math.cos(angle) * share;
-      y[bin] += Math.sin(angle) * share;
-      chroma[bin] += colour * share;
-    }
-    const spread = bin => weight[bin] + .5 * (weight[(bin + 1) % bins] + weight[(bin + bins - 1) % bins]);
-    let best = 0;
-    for (let bin = 1; bin < bins; bin++) if (spread(bin) > spread(best)) best = bin;
-    if (!weight[best]) return { hue: 0, chroma: 0 };
-    return { hue: (Math.atan2(y[best], x[best]) * 180 / Math.PI + 360) % 360, chroma: chroma[best] / weight[best] };
-  }
-
-  function clamp(value, low, high) {
-    return Math.min(high, Math.max(low, value));
-  }
-
-  function tint(image) {
-    let colours = { wash: '', accent: '', tone: '' };
+  async function tint(image) {
+    const selectedArtwork = artwork;
+    const key = image.currentSrc || image.src;
+    let colours = accentCache.get(key);
     try {
-      const { hue, chroma } = palette(image);
-      if (chroma > .035) {
-        const angle = hue.toFixed(1);
-        const lift = .12 * Math.max(0, Math.cos((hue - 100) * Math.PI / 180));
-        colours = {
-          wash: 'oklch(91% ' + clamp(chroma * .8, .055, .1).toFixed(3) + ' ' + angle + ')',
-          accent: 'oklch(' + ((.63 + lift) * 100).toFixed(1) + '% ' + clamp(chroma * 1.2, .12, .19).toFixed(3) + ' ' + angle + ')',
-          tone: 'oklch(' + ((.75 + lift * .6) * 100).toFixed(1) + '% ' + clamp(chroma * 1.1, .1, .17).toFixed(3) + ' ' + angle + ')',
-        };
+      if (!colours) {
+        const { pickAccent } = await (accentPicker ||= import('./album-accent.js'));
+        if (artwork !== selectedArtwork) return;
+        colours = pickAccent(image);
+        accentCache.set(key, colours);
+        if (accentCache.size > 12) accentCache.delete(accentCache.keys().next().value);
       }
     } catch {
+      accentPicker = undefined;
       return;
     }
     root.classList.add('is-tinting');

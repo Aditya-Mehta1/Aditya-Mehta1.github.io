@@ -4,12 +4,14 @@
   "scripts": {
     "dev": "python3 -m http.server 8765 --bind 127.0.0.1",
     "build": "node scripts/build.mjs",
-    "check": "node scripts/build.mjs --check && npm run lint",
+    "check": "node scripts/build.mjs --check && npm run lint && node --test scripts/accent-picker.test.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
     "lint": "node scripts/lint.mjs"
   },
   "devDependencies": {
     "acorn": "^8.18.0",
+    "colorthief": "3.5.0",
+    "esbuild": "0.28.2",
     "lightningcss": "^1.33.0",
     "parse5": "^8.0.1",
     "postcss": "^8.5.28"
