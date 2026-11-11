@@ -49,8 +49,8 @@ Never describe a planned control as already enforced.
   attempts that fail. All listening pages MUST share one upstream allowance;
   changing a page, account-like input, hostname or query MUST NOT create a new
   upstream budget. Do not raise limits without reviewing abuse and account usage.
-- Current configured limits MUST remain approximately 30 visitor requests per
-  minute per IP/location and two Last.fm attempts per minute per location unless
+- Current configured limits MUST remain approximately 45 visitor requests per
+  minute per IP/location and three Last.fm attempts per minute per location unless
   the owner explicitly approves a change. Shared IPs share the visitor allowance.
 - MUST serve all ten pages from one canonical, versioned snapshot cache key.
   Fetch up to 100 past plays plus the optional current track in one fixed Last.fm
