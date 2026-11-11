@@ -19,8 +19,7 @@
   const haloReach = 20;
   const haloShift = 10;
   const haloDensity = .66;
-  const storageKey = 'listening-colours';
-  const trackKey = 'listening-track';
+  const retryDelays = [400, 1200, 3000];
   const halo = document.createElement('canvas');
   const disc = document.createElement('span');
   let statusPending = false;
@@ -30,6 +29,7 @@
   let artwork;
   let haloSize = 0;
   let feedReady = false;
+  let feedAttempt = 0;
   let history;
   let open = false;
   let intentTimer;
@@ -118,16 +118,6 @@
     clearTimeout(tintTimer);
     tintTimer = setTimeout(() => root.classList.remove('is-tinting'), 1200);
     paint(colours);
-    remember(storageKey, colours);
-  }
-
-  function remember(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   function paint(colours) {
@@ -136,18 +126,6 @@
       else root.style.removeProperty('--' + name);
     }
     drawHalo(true);
-  }
-
-  function restore() {
-    try {
-      const colours = JSON.parse(localStorage.getItem(storageKey));
-      if (colours && ['wash', 'accent', 'tone'].every(name => typeof colours[name] === 'string' && /^(oklch\([\d.% ]+\))?$/.test(colours[name]))) paint(colours);
-      else drawHalo(true);
-      const track = JSON.parse(localStorage.getItem(trackKey));
-      if (track && [track.name, track.artist, track.art].every(value => typeof value === 'string') && /^(https:\/\/[\w.-]+\/[\w./-]+)?$/.test(track.art)) showTrack(track.name, track.artist, track.art);
-    } catch {
-      drawHalo(true);
-    }
   }
 
   function drawHalo(force) {
@@ -227,17 +205,29 @@
     showArtwork(art);
   }
 
+  async function latestSong() {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const response = await fetch('https://lastfm-last-played.biancarosa.com.br/aditya-mehta/latest-song', {
+          credentials: 'omit', cache: 'no-store', priority: 'high', signal: AbortSignal.timeout(5000),
+        });
+        if (!response.ok) throw new Error('Listening status unavailable');
+        const track = (await response.json())?.track;
+        if (!track?.name) throw new Error('Listening status unavailable');
+        return track;
+      } catch (error) {
+        if (attempt === retryDelays.length) throw error;
+        await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+      }
+    }
+  }
+
   async function refreshStatus() {
     if (document.hidden || statusPending || performance.now() - statusCheckedAt < 45000) return;
     statusPending = true;
     statusCheckedAt = performance.now();
     try {
-      const response = await fetch('https://lastfm-last-played.biancarosa.com.br/aditya-mehta/latest-song', {
-        credentials: 'omit', cache: 'no-store', priority: 'high', signal: AbortSignal.timeout(5000),
-      });
-      if (!response.ok) throw new Error('Listening status unavailable');
-      const track = (await response.json())?.track;
-      if (!track?.name) throw new Error('Listening status unavailable');
+      const track = await latestSong();
       const artist = track.artist?.['#text'] || '';
       const art = track.image?.find(image => image.size === 'extralarge')?.['#text'] || '';
       const key = track.name + '\n' + artist;
@@ -246,7 +236,6 @@
       current.hidden = track['@attr']?.nowplaying !== 'true';
       nowPlaying = current.hidden ? undefined : { name: track.name, artist };
       showTrack(track.name, artist, art);
-      remember(trackKey, { name: track.name, artist, art });
     } catch {
       current.hidden = true;
       nowPlaying = undefined;
@@ -400,6 +389,8 @@
       strip.replaceChildren();
       for (let index = 0; index < Math.min(count, stripCount); index++) strip.append(row(index, url, ['art']));
       feedReady = true;
+      feedAttempt = 0;
+      delete source.dataset.failed;
       section.classList.add('has-feed');
 
       const reopen = open;
@@ -417,16 +408,22 @@
       }
       if (nowPlaying) labelNowPlaying();
     } catch {
-      if (!feedReady) source.dataset.failed = 'true';
+      feedFailed();
     }
     reveal();
   }
 
-  source.addEventListener('load', render);
-  source.addEventListener('error', () => {
+  function feedFailed() {
+    if (feedAttempt < retryDelays.length) {
+      setTimeout(() => loadFeed(Date.now()), retryDelays[feedAttempt++]);
+      return;
+    }
     if (!feedReady) source.dataset.failed = 'true';
     reveal();
-  });
+  }
+
+  source.addEventListener('load', render);
+  source.addEventListener('error', feedFailed);
   section.addEventListener('pointerenter', refreshStatus);
   earlier.addEventListener('pointerenter', event => {
     clearTimeout(closeTimer);
@@ -449,7 +446,7 @@
     schedulePosition();
   });
   window.addEventListener('scroll', schedulePosition, { passive: true });
-  restore();
+  drawHalo(true);
   loadFeed(Math.floor(Date.now() / 60000));
   refreshStatus();
   setInterval(refreshStatus, 60000);
