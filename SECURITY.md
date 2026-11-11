@@ -52,8 +52,11 @@ Never describe a planned control as already enforced.
 - Current configured limits MUST remain approximately 30 visitor requests per
   minute per IP/location and two Last.fm attempts per minute per location unless
   the owner explicitly approves a change. Shared IPs share the visitor allowance.
-- MUST use at most ten canonical, versioned page cache keys; absent page and page
-  1 share a key. Cache only successful normalized public data for 60 seconds.
+- MUST serve all ten pages from one canonical, versioned snapshot cache key.
+  Fetch up to 100 past plays plus the optional current track in one fixed Last.fm
+  request; paginate the normalized snapshot locally. Caller page choices MUST NOT
+  create extra upstream calls while that snapshot remains cached. Cache only
+  successful normalized public data for 60 seconds.
   Never cache credentials, raw upstream failures or caller-specific authorization.
 - MUST retain origin and visitor checks on cache hits. Browser-facing responses
   and errors MUST use `Cache-Control: no-store`; 429 MUST carry `Retry-After` and
@@ -63,6 +66,9 @@ Never describe a planned control as already enforced.
 - MUST keep browser paging sequential, prevent duplicate in-flight loads, respect
   `Retry-After`, and avoid automatic retry loops. Fetch older pages only while
   history is open. Background/hidden tabs MUST NOT poll listening status.
+- MUST preserve already displayed history on failure, distinguish temporary
+  throttling from other failures, and show the remaining retry delay accurately.
+  Ending a cooldown MUST NOT promise fresh data or start an automatic retry loop.
 
 ## Upstream and browser data
 
@@ -123,7 +129,8 @@ Never describe a planned control as already enforced.
   including rejections and internal-cache hits. This endpoint can still exhaust
   that allowance. Free-tier usage monitoring and deployment checks are operational
   duties, not protections guaranteed by this code.
-- Last.fm offset pages can shift while new plays arrive or old plays are removed.
+- A cached snapshot keeps page boundaries consistent for its 60-second lifetime.
+  A later snapshot can shift while new plays arrive or old plays are removed.
   UI deduplication reduces overlap; exact archival continuity is not guaranteed.
 - A written policy is not continuous enforcement. Existing checks cover syntax,
   generated CSS and tested application boundaries. No automated account-wide

@@ -31,6 +31,8 @@
   let staleTimer;
   let surface;
   let more;
+  let historyStatus;
+  let historyFailed = false;
   let history;
   let open = false;
   let intentTimer;
@@ -156,14 +158,14 @@
   }
 
   async function getPage(page) {
-    if (Date.now() < blockedUntil) throw new Error('More history available in a minute');
+    if (Date.now() < blockedUntil) throw new Error('History temporarily busy');
     const response = await fetch(endpoint + '?page=' + page, {
       credentials: 'omit', signal: AbortSignal.timeout(7000),
     });
     if (response.status === 429) {
       const seconds = Math.max(1, Math.min(300, Number(response.headers.get('Retry-After')) || 60));
       blockedUntil = Date.now() + seconds * 1000;
-      throw new Error('More history available in a minute');
+      throw new Error('History temporarily busy');
     }
     if (!response.ok) throw new Error('Could not load history. Try again');
     const data = await response.json();
@@ -276,7 +278,7 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (open) {
         history.classList.add('is-open');
-        if (surface.scrollHeight <= surface.clientHeight + 48) loadMore();
+        if (!historyFailed && surface.scrollHeight <= surface.clientHeight + 48) loadMore();
       }
     }));
   }
@@ -301,6 +303,7 @@
   function buildHistory() {
     if (history) history.remove();
     clearTimeout(retryTimer);
+    historyFailed = false;
     history = document.createElement('div');
     history.id = 'listening-history';
     history.className = 'listening-history';
@@ -315,13 +318,18 @@
     more = document.createElement('button');
     more.type = 'button';
     more.className = 'listening-more';
-    more.setAttribute('aria-live', 'polite');
+    more.setAttribute('aria-describedby', 'listening-status');
     more.textContent = 'Load more';
     more.addEventListener('click', loadMore);
     surface.addEventListener('scroll', () => {
-      if (surface.scrollTop > 0 && surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 48) loadMore();
+      if (!historyFailed && surface.scrollTop > 0 && surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 48) loadMore();
     }, { passive: true });
-    surface.append(more);
+    historyStatus = document.createElement('p');
+    historyStatus.id = 'listening-status';
+    historyStatus.className = 'listening-status';
+    historyStatus.setAttribute('role', 'status');
+    historyStatus.hidden = true;
+    surface.append(more, historyStatus);
     history.append(surface);
     earlier.append(history);
   }
@@ -359,24 +367,35 @@
     paging = true;
     more.disabled = true;
     more.textContent = 'Loading…';
+    historyFailed = false;
+    historyStatus.textContent = '';
+    historyStatus.hidden = true;
     try {
       const data = await getPage(nextPage);
       nextPage = data.nextPage;
       appendTracks(data.tracks);
       more.textContent = 'Load more';
-    } catch (error) {
-      more.textContent = error.message;
+    } catch {
+      historyFailed = true;
+      historyStatus.textContent = Date.now() < blockedUntil
+        ? 'More tracks are temporarily unavailable.'
+        : 'Couldn’t load more tracks.';
+      historyStatus.hidden = false;
+      more.textContent = 'Try again';
     } finally {
       paging = false;
-      more.disabled = Date.now() < blockedUntil;
-      if (more.disabled) {
-        clearTimeout(retryTimer);
-        retryTimer = setTimeout(() => {
-          more.disabled = false;
-          more.textContent = 'Load more';
-        }, blockedUntil - Date.now());
-      }
+      more.disabled = false;
+      if (Date.now() < blockedUntil) showCooldown();
     }
+  }
+
+  function showCooldown() {
+    clearTimeout(retryTimer);
+    const seconds = Math.max(0, Math.ceil((blockedUntil - Date.now()) / 1000));
+    more.disabled = seconds > 0;
+    more.textContent = seconds ? 'Try again in ' + seconds + 's' : 'Try again';
+    if (seconds) retryTimer = setTimeout(showCooldown, Math.min(1000, blockedUntil - Date.now()));
+    else historyStatus.textContent = 'You can try again now.';
   }
 
   section.addEventListener('pointerenter', refreshStatus);
