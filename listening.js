@@ -6,12 +6,10 @@
   const caption = preview.querySelector('.listening-now');
   const earlier = section.querySelector('.listening-earlier');
   const strip = earlier.querySelector('.listening-strip');
-  const source = earlier.querySelector('.listening-source');
   const current = section.querySelector('.listening-current');
-  const feed = source.dataset.src;
+  const endpoint = 'https://ps-website-helper.track-aditya-mehta.workers.dev/api/listening';
   const canHover = window.matchMedia('(hover: hover)');
   const bayer = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60, 28, 52, 20, 62, 30, 54, 22, 3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21];
-  const feedRowHeight = 56;
   const stripCount = 5;
   const columnRows = 5;
   const inset = 17;
@@ -19,17 +17,20 @@
   const haloReach = 20;
   const haloShift = 10;
   const haloDensity = .66;
-  const retryDelays = [400, 1200, 3000];
   const halo = document.createElement('canvas');
   const disc = document.createElement('span');
   let statusPending = false;
   let statusCheckedAt = -Infinity;
-  let latestTrack;
-  let nowPlaying;
   let artwork;
   let haloSize = 0;
-  let feedReady = false;
-  let feedAttempt = 0;
+  let tracks = [];
+  let nextPage = null;
+  let paging = false;
+  let blockedUntil = 0;
+  let retryTimer;
+  let staleTimer;
+  let surface;
+  let more;
   let history;
   let open = false;
   let intentTimer;
@@ -43,10 +44,6 @@
   disc.className = 'listening-disc';
   cover.append(halo, disc);
   document.querySelectorAll('.wash-phrase, mark').forEach((element, index) => element.style.setProperty('--order', index));
-
-  function loadFeed(stamp) {
-    source.src = feed + '&t=' + stamp;
-  }
 
   function linear(channel) {
     const value = channel / 255;
@@ -205,100 +202,87 @@
     showArtwork(art);
   }
 
-  async function latestSong() {
-    for (let attempt = 0; ; attempt++) {
-      try {
-        const response = await fetch('https://lastfm-last-played.biancarosa.com.br/aditya-mehta/latest-song', {
-          credentials: 'omit', cache: 'no-store', priority: 'high', signal: AbortSignal.timeout(5000),
-        });
-        if (!response.ok) throw new Error('Listening status unavailable');
-        const track = (await response.json())?.track;
-        if (!track?.name) throw new Error('Listening status unavailable');
-        return track;
-      } catch (error) {
-        if (attempt === retryDelays.length) throw error;
-        await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
-      }
+  async function getPage(page) {
+    if (Date.now() < blockedUntil) throw new Error('More history available in a minute');
+    const response = await fetch(endpoint + '?page=' + page, {
+      credentials: 'omit', signal: AbortSignal.timeout(7000),
+    });
+    if (response.status === 429) {
+      const seconds = Math.max(1, Math.min(300, Number(response.headers.get('Retry-After')) || 60));
+      blockedUntil = Date.now() + seconds * 1000;
+      throw new Error('More history available in a minute');
     }
+    if (!response.ok) throw new Error('Could not load history. Try again');
+    const data = await response.json();
+    if (data.page !== page || !Array.isArray(data.tracks) || data.tracks.length > 11
+      || (data.nextPage !== null && (data.nextPage !== page + 1 || data.nextPage > 10))) {
+      throw new Error('Listening history unavailable');
+    }
+    return data;
   }
 
   async function refreshStatus() {
-    if (document.hidden || statusPending || performance.now() - statusCheckedAt < 45000) return;
+    if (document.hidden || open || paging || statusPending || performance.now() - statusCheckedAt < 60000) return;
     statusPending = true;
     statusCheckedAt = performance.now();
     try {
-      const track = await latestSong();
-      const artist = track.artist?.['#text'] || '';
-      const art = track.image?.find(image => image.size === 'extralarge')?.['#text'] || '';
-      const key = track.name + '\n' + artist;
-      if (latestTrack !== undefined && key !== latestTrack) loadFeed(Date.now());
-      latestTrack = key;
-      current.hidden = track['@attr']?.nowplaying !== 'true';
-      nowPlaying = current.hidden ? undefined : { name: track.name, artist };
-      showTrack(track.name, artist, art);
+      const data = await getPage(1);
+      if (open || paging) return;
+      const track = data.tracks[0];
+      current.hidden = !track?.nowPlaying || Date.now() - Date.parse(data.fetchedAt) > 120000;
+      clearTimeout(staleTimer);
+      if (!current.hidden) {
+        staleTimer = setTimeout(() => {
+          current.hidden = true;
+          section.classList.remove('is-playing');
+        }, Math.max(0, 120000 - (Date.now() - Date.parse(data.fetchedAt))));
+      }
+      if (track) showTrack(track.name, track.artist, track.image);
+      strip.replaceChildren(...data.tracks.slice(0, stripCount).map((track, index) => row(track, index, false)));
+      tracks = [];
+      nextPage = data.nextPage;
+      buildHistory();
+      appendTracks(data.tracks);
+      section.hidden = data.tracks.length === 0;
     } catch {
       current.hidden = true;
-      nowPlaying = undefined;
-      if (!section.classList.contains('has-cover')) section.classList.add('no-cover');
+      if (!tracks.length) section.hidden = true;
     } finally {
-      labelNowPlaying();
       section.classList.toggle('is-playing', !current.hidden);
       statusPending = false;
-      reveal();
     }
   }
 
-  function reveal() {
-    const empty = section.classList.contains('no-cover') && !feedReady;
-    section.hidden = empty && source.dataset.failed === 'true';
-    const linked = section.classList.contains('no-cover');
-    strip.tabIndex = linked ? 0 : -1;
-    if (linked) {
-      strip.removeAttribute('aria-hidden');
-      strip.setAttribute('aria-label', preview.getAttribute('aria-label'));
-    } else {
-      strip.setAttribute('aria-hidden', 'true');
-      strip.removeAttribute('aria-label');
-    }
-  }
-
-  function crop(part, url) {
-    const frame = document.createElement('span');
-    frame.className = 'listening-' + part;
-    const image = new Image();
-    image.alt = '';
-    image.decoding = 'async';
-    image.src = url;
-    frame.append(image);
-    return frame;
-  }
-
-  function row(index, url, parts) {
-    const element = document.createElement('span');
+  function row(track, index, linked) {
+    const element = document.createElement(linked ? 'a' : 'span');
     element.className = 'listening-row';
     element.dataset.index = index;
-    element.style.setProperty('--track', index);
-    element.append(...parts.map(part => crop(part, url)));
-    return element;
-  }
-
-  function labelNowPlaying() {
-    const first = history?.querySelector('.listening-row[data-index="0"]');
-    if (!first) return;
-    const copy = first.querySelector('.listening-copy');
-    copy.classList.toggle('is-text', Boolean(nowPlaying));
-    copy.replaceChildren();
-    if (nowPlaying) {
+    if (linked) element.href = track.url || preview.href;
+    const art = document.createElement('span');
+    art.className = 'listening-art';
+    if (track.image) {
+      const image = new Image();
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.src = track.image;
+      image.addEventListener('error', () => { image.hidden = true; });
+      art.append(image);
+    }
+    element.append(art);
+    if (linked) {
+      const copy = document.createElement('span');
+      copy.className = 'listening-copy';
       const name = document.createElement('span');
       const artist = document.createElement('span');
       name.className = 'listening-track';
       artist.className = 'listening-artist';
-      name.textContent = nowPlaying.name;
-      artist.textContent = nowPlaying.artist;
+      name.textContent = track.name;
+      artist.textContent = track.artist;
       copy.append(name, artist);
-    } else {
-      copy.append(crop('copy', source.currentSrc || source.src).firstChild);
+      element.append(copy);
     }
+    return element;
   }
 
   function positionHistory() {
@@ -333,10 +317,14 @@
     history.hidden = false;
     history.inert = false;
     history.setAttribute('aria-hidden', 'false');
+    strip.setAttribute('aria-expanded', 'true');
     if (history.showPopover && !history.matches(':popover-open')) history.showPopover();
     positionHistory();
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      if (open) history.classList.add('is-open');
+      if (open) {
+        history.classList.add('is-open');
+        if (surface.scrollHeight <= surface.clientHeight + 48) loadMore();
+      }
     }));
   }
 
@@ -346,6 +334,8 @@
     if (!history || !open) return;
     open = false;
     history.classList.remove('is-open');
+    strip.setAttribute('aria-expanded', 'false');
+    if (history.contains(document.activeElement)) strip.focus({ preventScroll: true });
     history.inert = true;
     history.setAttribute('aria-hidden', 'true');
     clearTimeout(hideTimer);
@@ -355,85 +345,102 @@
     }, 200);
   }
 
-  function buildHistory(count, url) {
-    const panel = document.createElement('div');
-    panel.id = 'listening-history';
-    panel.className = 'listening-history';
-    panel.setAttribute('popover', 'manual');
-    panel.setAttribute('aria-hidden', 'true');
-    panel.hidden = true;
-    panel.inert = true;
-    panel.style.setProperty('--feed-height', source.naturalHeight + 'px');
-    const surface = document.createElement('a');
+  function buildHistory() {
+    if (history) history.remove();
+    clearTimeout(retryTimer);
+    history = document.createElement('div');
+    history.id = 'listening-history';
+    history.className = 'listening-history';
+    history.setAttribute('popover', 'manual');
+    history.setAttribute('aria-hidden', 'true');
+    history.hidden = true;
+    history.inert = true;
+    surface = document.createElement('div');
     surface.className = 'history-surface';
-    surface.href = preview.href;
-    surface.setAttribute('aria-label', 'My latest ' + count + ' tracks on Last.fm');
-    for (let start = 0; start < count; start += columnRows) {
-      const column = document.createElement('span');
+    surface.setAttribute('role', 'region');
+    surface.setAttribute('aria-label', 'Recent listening history');
+    more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'listening-more';
+    more.setAttribute('aria-live', 'polite');
+    more.textContent = 'Load more';
+    more.addEventListener('click', loadMore);
+    surface.addEventListener('scroll', () => {
+      if (surface.scrollTop > 0 && surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 48) loadMore();
+    }, { passive: true });
+    surface.append(more);
+    history.append(surface);
+    earlier.append(history);
+  }
+
+  function appendTracks(incoming) {
+    const seen = new Set(tracks.map(track => JSON.stringify([track.playedAt, track.name, track.artist])));
+    const added = incoming.filter(track => {
+      if (track.nowPlaying) return false;
+      const key = JSON.stringify([track.playedAt, track.name, track.artist]);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    for (let start = 0; start < added.length; start += columnRows) {
+      const column = document.createElement('div');
       column.className = 'history-column';
-      column.setAttribute('aria-hidden', 'true');
-      for (let index = start; index < Math.min(count, start + columnRows); index++) column.append(row(index, url, ['art', 'copy']));
-      surface.append(column);
+      for (let index = start; index < Math.min(added.length, start + columnRows); index++) {
+        column.append(row(added[index], tracks.length + index, true));
+      }
+      surface.insertBefore(column, more);
     }
-    panel.append(surface);
-    return panel;
+    tracks.push(...added);
+    more.hidden = nextPage === null;
+    if (nextPage === null) {
+      const end = document.createElement('p');
+      end.className = 'listening-end';
+      end.textContent = tracks.length ? 'End of recent history' : 'No recent plays';
+      surface.append(end);
+    }
+    schedulePosition();
   }
 
-  async function render() {
-    const url = source.currentSrc || source.src;
+  async function loadMore() {
+    if (!open || paging || more.disabled || nextPage === null) return;
+    paging = true;
+    more.disabled = true;
+    more.textContent = 'Loading…';
     try {
-      await source.decode().catch(() => {});
-      const count = source.naturalHeight / feedRowHeight;
-      if (source.naturalWidth !== 260 || !Number.isInteger(count) || count < 1) throw new Error('Unexpected feed layout');
-      strip.style.setProperty('--feed-height', source.naturalHeight + 'px');
-      strip.replaceChildren();
-      for (let index = 0; index < Math.min(count, stripCount); index++) strip.append(row(index, url, ['art']));
-      feedReady = true;
-      feedAttempt = 0;
-      delete source.dataset.failed;
-      section.classList.add('has-feed');
-
-      const reopen = open;
-      if (history) {
-        open = false;
-        clearTimeout(hideTimer);
-        if (history.hidePopover && history.matches(':popover-open')) history.hidePopover();
-        history.remove();
-        history = undefined;
+      const data = await getPage(nextPage);
+      nextPage = data.nextPage;
+      appendTracks(data.tracks);
+      more.textContent = 'Load more';
+    } catch (error) {
+      more.textContent = error.message;
+    } finally {
+      paging = false;
+      more.disabled = Date.now() < blockedUntil;
+      if (more.disabled) {
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(() => {
+          more.disabled = false;
+          more.textContent = 'Load more';
+        }, blockedUntil - Date.now());
       }
-      if (count > 1) {
-        history = buildHistory(count, url);
-        earlier.append(history);
-        if (reopen) openHistory();
-      }
-      if (nowPlaying) labelNowPlaying();
-    } catch {
-      feedFailed();
     }
-    reveal();
   }
 
-  function feedFailed() {
-    if (feedAttempt < retryDelays.length) {
-      setTimeout(() => loadFeed(Date.now()), retryDelays[feedAttempt++]);
-      return;
-    }
-    if (!feedReady) source.dataset.failed = 'true';
-    reveal();
-  }
-
-  source.addEventListener('load', render);
-  source.addEventListener('error', feedFailed);
   section.addEventListener('pointerenter', refreshStatus);
+  strip.addEventListener('click', () => {
+    if (!open) openHistory();
+  });
   earlier.addEventListener('pointerenter', event => {
     clearTimeout(closeTimer);
     if (event.pointerType !== 'mouse' || !canHover.matches) return;
     clearTimeout(intentTimer);
-    intentTimer = setTimeout(() => openHistory(), open ? 0 : 100);
+    intentTimer = setTimeout(openHistory, 100);
   });
-  earlier.addEventListener('pointerleave', () => {
+  earlier.addEventListener('pointerleave', event => {
     clearTimeout(intentTimer);
-    closeTimer = setTimeout(closeHistory, 160);
+    if (event.pointerType === 'mouse' && !earlier.contains(document.activeElement)) {
+      closeTimer = setTimeout(closeHistory, 160);
+    }
   });
   document.addEventListener('pointerdown', event => {
     if (open && !earlier.contains(event.target)) closeHistory();
@@ -447,7 +454,6 @@
   });
   window.addEventListener('scroll', schedulePosition, { passive: true });
   drawHalo(true);
-  loadFeed(Math.floor(Date.now() / 60000));
   refreshStatus();
   setInterval(refreshStatus, 60000);
   document.addEventListener('visibilitychange', () => {

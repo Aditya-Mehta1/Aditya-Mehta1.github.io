@@ -78,10 +78,9 @@
   <link rel="icon" href="favicon.svg?v=20261019-2" type="image/svg+xml" sizes="any">
   <link rel="preload" href="fonts/instrumentsans-normal-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/departuremono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preconnect" href="https://lastfm-last-played.biancarosa.com.br">
-  <link rel="preconnect" href="https://lastfm-recently-played.jeffreyca.workers.dev">
+  <link rel="preconnect" href="https://ps-website-helper.track-aditya-mehta.workers.dev">
   <link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
-  <link rel="stylesheet" href="homepage.css?v=20261111-1">
+  <link rel="stylesheet" href="homepage.css?v=20261111-2">
 </head>
 
 <body>
@@ -185,8 +184,7 @@
           <span class="listening-now" aria-hidden="true"></span>
         </a>
         <div class="listening-earlier">
-          <a class="listening-strip" href="https://www.last.fm/user/aditya-mehta" tabindex="-1" aria-hidden="true"></a>
-          <img class="listening-source" data-src="https://lastfm-recently-played.jeffreyca.workers.dev/svg?user=aditya-mehta&amp;count=10&amp;width=260&amp;theme=transparent&amp;text_color=111111&amp;artist_color=767676&amp;meta_color=767676&amp;accent_color=0000&amp;radius=0&amp;profile=off&amp;header=0&amp;logo=0&amp;time=0&amp;loved=off&amp;stats=off&amp;footer=off" alt="" width="260" height="560" loading="eager" decoding="async" fetchpriority="low">
+          <button class="listening-strip" type="button" aria-label="Show listening history" aria-controls="listening-history" aria-expanded="false"></button>
         </div>
       </div>
     </aside>
@@ -270,7 +268,7 @@
 
 </main>
 
-<script src="listening.js?v=20261111-1"></script>
+<script src="listening.js?v=20261111-2"></script>
 <script>
   (function() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
