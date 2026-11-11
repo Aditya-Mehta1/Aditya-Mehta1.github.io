@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Immersive self-check</title><body><pre id="result">Running…</pre><script type="module">
+import { createTheme, applyTheme } from '../../album-theme.js';
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
+const channels = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16));
+const luminance = hex => channels(hex).map(x => x / 255).map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4).reduce((s, x, i) => s + x * [.2126, .7152, .0722][i], 0);
+const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
+const roles = ['paper', 'ink', 'ink2', 'ink3', 'accent', 'wash', 'tone'];
+const pairs = [['ink', 'paper'], ['ink2', 'paper'], ['ink3', 'paper'], ['ink', 'wash'], ['accent', 'paper']];
+try {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const cases = ['#000000', '#ffffff', '#808080', '#9d3e34', '#f1e2bf', '#182d43'];
+  for (const color of cases) {
+    ctx.fillStyle = color; ctx.fillRect(0, 0, 128, 128);
+    const theme = createTheme(canvas);
+    for (const role of roles) assert(/^#[a-f0-9]{6}$/i.test(theme[role]), 'Invalid ' + role);
+    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Contrast failed: ' + color + ' ' + a + '/' + b);
+    const target = document.createElement('div'); applyTheme(theme, target);
+    assert(target.style.getPropertyValue('--paper') === theme.paper, 'Background application failed');
+    assert(target.style.getPropertyValue('--ink-2') === theme.ink2, 'Body color application failed');
+    assert(!document.documentElement.style.getPropertyValue('--paper'), 'Scoped theme changed root');
+    assert(JSON.stringify(createTheme(canvas)) === JSON.stringify(theme), 'Extraction is not deterministic');
+  }
+  for (const background of ['#193f55', '#2d2149']) {
+    ctx.fillStyle = background; ctx.fillRect(0, 0, 128, 128);
+    ctx.fillStyle = '#be8a50'; ctx.fillRect(20, 20, 88, 88);
+    const theme = createTheme(canvas), paper = channels(theme.paper);
+    assert(paper[2] > paper[0], 'Warm subject erased the cool surroundings');
+    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Context contrast failed');
+  }
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 128, 128);
+  ctx.fillStyle = '#be8a50'; ctx.fillRect(8, 8, 112, 112);
+  const framed = channels(createTheme(canvas).paper);
+  assert(framed[0] > framed[2], 'A neutral frame displaced the source color');
+  let previous;
+  for (let gray = 0; gray <= 255; gray++) {
+    ctx.fillStyle = `rgb(${gray} ${gray} ${gray})`; ctx.fillRect(0, 0, 128, 128);
+    const theme = createTheme(canvas), current = channels(theme.paper);
+    assert(Math.max(...current) - Math.min(...current) <= 1, 'Neutral input gained a color cast');
+    if (previous) assert(Math.max(...current.map((x, i) => Math.abs(x - previous[i]))) <= 4, 'Small source change switched the whole background');
+    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Gray contrast failed: ' + gray);
+    previous = current;
+  }
+  ctx.clearRect(0, 0, 128, 128); ctx.fillStyle = 'rgba(120, 60, 180, .5)'; ctx.fillRect(16, 16, 96, 96);
+  const transparent = createTheme(canvas);
+  const opaque = document.createElement('canvas'); opaque.width = opaque.height = 128;
+  const matte = opaque.getContext('2d'); matte.fillStyle = '#fff'; matte.fillRect(0, 0, 128, 128); matte.drawImage(canvas, 0, 0);
+  assert(JSON.stringify(transparent) === JSON.stringify(createTheme(opaque)), 'Transparent artwork differs from its visible white matte');
+  window.checkResult = { passed: true, solidCases: cases.length, grayCases: 256, alphaParity: true };
+  document.querySelector('#result').textContent = 'PASS: contrast, neutral continuity, alpha compositing, scoped application and repeatability.';
+} catch (error) {
+  window.checkResult = { passed: false, error: error.message };
+  document.querySelector('#result').textContent = 'FAIL: ' + error.message;
+}
+</script></body></html>

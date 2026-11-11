@@ -7,6 +7,8 @@
   const earlier = section.querySelector('.listening-earlier');
   const strip = earlier.querySelector('.listening-strip');
   const current = section.querySelector('.listening-current');
+  const themeToggle = section.querySelector('.listening-theme');
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
   const endpoint = 'https://ps-website-helper.track-aditya-mehta.workers.dev/api/listening';
   const canHover = window.matchMedia('(hover: hover)');
   const bayer = [0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60, 28, 52, 20, 62, 30, 54, 22, 3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21];
@@ -40,6 +42,8 @@
   let hideTimer;
   let positionFrame;
   let tintTimer;
+  let lit = null;
+  let immersive = false;
 
   section.classList.add('is-live');
   halo.className = 'listening-halo';
@@ -52,12 +56,13 @@
 
   async function tint(image) {
     const selectedArtwork = artwork;
+    const selectedMode = immersive;
     const key = image.currentSrc || image.src;
     let colours = accentCache.get(key);
     try {
       if (!colours) {
         const { pickAccent } = await (accentPicker ||= import('./album-accent.js'));
-        if (artwork !== selectedArtwork) return;
+        if (artwork !== selectedArtwork || immersive !== selectedMode) return;
         colours = pickAccent(image);
         accentCache.set(key, colours);
         if (accentCache.size > 12) accentCache.delete(accentCache.keys().next().value);
@@ -66,7 +71,7 @@
       accentPicker = undefined;
       return;
     }
-    root.classList.add('is-tinting');
+    root.classList.toggle('is-tinting', !root.style.getPropertyValue('--paper'));
     clearTimeout(tintTimer);
     tintTimer = setTimeout(() => root.classList.remove('is-tinting'), 1200);
     paint(colours);
@@ -77,7 +82,42 @@
       if (colours[name]) root.style.setProperty('--' + name, colours[name]);
       else root.style.removeProperty('--' + name);
     }
+    for (const name of ['paper', 'ink', 'ink-2', 'ink-3']) root.style.removeProperty('--' + name);
+    root.style.colorScheme = '';
+    themeMeta?.setAttribute('content', '#ffffff');
     drawHalo(true);
+  }
+
+  let themeBuilder;
+  const themeCache = new Map();
+
+  async function immerse(image) {
+    const selectedArtwork = artwork;
+    const key = image.currentSrc || image.src;
+    try {
+      const { createTheme, applyTheme } = await (themeBuilder ||= import('./album-theme.js'));
+      if (artwork !== selectedArtwork || !immersive) return;
+      let theme = themeCache.get(key);
+      if (!theme) {
+        theme = createTheme(image);
+        themeCache.set(key, theme);
+        if (themeCache.size > 12) themeCache.delete(themeCache.keys().next().value);
+      }
+      root.classList.remove('is-tinting');
+      clearTimeout(tintTimer);
+      applyTheme(theme);
+      themeMeta?.setAttribute('content', theme.paper);
+      drawHalo(true);
+    } catch {
+      themeBuilder = undefined;
+      if (artwork === selectedArtwork && immersive) tint(image);
+    }
+  }
+
+  function colour(image) {
+    lit = image;
+    if (immersive) immerse(image);
+    else tint(image);
   }
 
   function drawHalo(force) {
@@ -118,7 +158,9 @@
   function showArtwork(url) {
     if (url === artwork) return;
     artwork = url;
+    lit = null;
     if (!url) {
+      paint({});
       section.classList.add('no-cover');
       return;
     }
@@ -134,7 +176,7 @@
       cover.append(image);
       section.classList.remove('no-cover');
       section.classList.add('has-cover');
-      tint(image);
+      colour(image);
       requestAnimationFrame(() => requestAnimationFrame(() => image.classList.add('is-shown')));
       setTimeout(() => previous.forEach(element => element.remove()), 300);
     });
@@ -398,6 +440,12 @@
     else historyStatus.textContent = 'You can try again now.';
   }
 
+  themeToggle.addEventListener('click', () => {
+    immersive = !immersive;
+    themeToggle.setAttribute('aria-pressed', String(immersive));
+    if (lit) colour(lit);
+    else if (!immersive) paint({});
+  });
   section.addEventListener('pointerenter', refreshStatus);
   strip.addEventListener('click', () => {
     if (!open) openHistory();

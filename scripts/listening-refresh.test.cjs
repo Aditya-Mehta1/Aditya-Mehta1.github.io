@@ -23,7 +23,7 @@ class Element {
   contains() { return false; }
 }
 
-const nodes = Object.fromEntries(['section', 'preview', 'cover', 'now', 'earlier', 'strip', 'current']
+const nodes = Object.fromEntries(['section', 'preview', 'cover', 'now', 'earlier', 'strip', 'current', 'theme']
   .map(key => ['.listening-' + key, new Element()]));
 for (const element of Object.values(nodes)) element.querySelector = key => nodes[key];
 let now = 0;

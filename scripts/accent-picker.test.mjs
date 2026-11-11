@@ -43,10 +43,11 @@ function harness(loadPicker) {
   const painted = [];
   const context = vm.createContext({
     loadPicker, paint: colors => painted.push(colors),
-    root: { classList: { add() {}, remove() {} } }, setTimeout: () => 1, clearTimeout() {},
+    root: { style: { getPropertyValue: () => '' }, classList: { add() {}, remove() {}, toggle() {} } }, setTimeout: () => 1, clearTimeout() {},
   });
-  vm.runInContext(`let artwork; let tintTimer; ${tintSource}
+  vm.runInContext(`let artwork; let tintTimer; let immersive = false; ${tintSource}
     globalThis.run = key => { artwork = key; return tint({ currentSrc: key }); };
+    globalThis.setImmersive = value => { immersive = value; };
     globalThis.cacheSize = () => accentCache.size;`, context);
   return { context, painted };
 }
@@ -81,6 +82,17 @@ test('a failed picker load leaves the page alone and allows a later retry', asyn
   });
   await context.run('first'); assert.equal(painted.length, 0);
   await context.run('second'); assert.equal(painted.length, 1);
+});
+
+test('delayed accents cannot overwrite a newly selected immersive theme', async () => {
+  let resolve;
+  const pending = new Promise(done => { resolve = done; });
+  const { context, painted } = harness(() => pending);
+  const first = context.run('cover');
+  context.setImmersive(true);
+  resolve({ pickAccent: () => ({ accent: '#ff0000' }) });
+  await first;
+  assert.equal(painted.length, 0);
 });
 
 process.on('exit', () => {

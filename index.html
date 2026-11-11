@@ -80,7 +80,7 @@
   <link rel="preload" href="fonts/departuremono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://ps-website-helper.track-aditya-mehta.workers.dev">
   <link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
-  <link rel="stylesheet" href="homepage.css?v=20261111-4">
+  <link rel="stylesheet" href="homepage.css?v=20261111-6">
 </head>
 
 <body>
@@ -178,6 +178,7 @@
         <div class="listening-heading">
           <p class="listening-label">listening to</p>
           <span class="listening-current" hidden>now playing</span>
+          <button class="listening-theme" type="button" aria-pressed="false" aria-label="Match the page to this album" title="Match the page to this album"></button>
         </div>
         <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="My recent tracks on Last.fm">
           <span class="listening-cover" aria-hidden="true"></span>
@@ -268,7 +269,7 @@
 
 </main>
 
-<script src="listening.js?v=20261111-4"></script>
+<script src="listening.js?v=20261111-6"></script>
 <script>
   (function() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
