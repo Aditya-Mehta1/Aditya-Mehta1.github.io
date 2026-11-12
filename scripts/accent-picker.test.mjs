@@ -9,7 +9,7 @@ globalThis.document = { createElement: () => ({ getContext: () => null }) };
 globalThis.ImageData = class {
   constructor(data) { this.data = data; this.width = this.height = 128; }
 };
-const { selectAccent } = await import('./accent-picker.mjs');
+const { selectAccent, markColor, washColor } = await import('./accent-picker.mjs');
 function frame(colorAt) {
   const data = new Uint8ClampedArray(128 * 128 * 4);
   for (let i = 0; i < 128 * 128; i++) data.set([...colorAt(i % 128, Math.floor(i / 128)), 255], i * 4);
@@ -36,17 +36,52 @@ test('near-neutral artwork does not get an invented vivid hue', () => {
   assert.deepEqual(selected.rgb, [24, 24, 24]);
 });
 
+test('keyword color is vivid, readable on paper, and absent for colorless artwork', () => {
+  const luminance = rgb => rgb.reduce((sum, v, i) => {
+    v /= 255;
+    return sum + (v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4) * [.2126, .7152, .0722][i];
+  }, 0);
+  const onPaper = rgb => (luminance([250, 250, 250]) + .05) / (luminance(rgb) + .05);
+  for (const rgb of [[180, 86, 46], [25, 75, 160], [60, 12, 20], [242, 194, 48], [0, 0, 255]]) {
+    const mark = markColor(selectAccent(frame(() => rgb)));
+    assert.ok(onPaper(mark) >= 4.5, `${rgb} is unreadable as ${mark}`);
+    assert.ok(Math.max(...mark) - Math.min(...mark) > 40, `${rgb} lost its color as ${mark}`);
+  }
+  assert.ok(onPaper(markColor(selectAccent(frame(() => [60, 12, 20])))) < 6, 'Dark artwork should be lifted, not left near black');
+  for (const rgb of [[0, 0, 0], [128, 128, 128], [255, 255, 255]]) assert.equal(markColor(selectAccent(frame(() => rgb))), null);
+});
+
+test('highlight color is vivid for vivid artwork, quiet for muted artwork, and readable under ink', () => {
+  const luminance = rgb => rgb.reduce((sum, v, i) => {
+    v /= 255;
+    return sum + (v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4) * [.2126, .7152, .0722][i];
+  }, 0);
+  const underInk = rgb => (luminance(rgb) + .05) / (luminance([10, 10, 10]) + .05);
+  const spread = rgb => Math.max(...rgb) - Math.min(...rgb);
+  const wash = colorAt => washColor(selectAccent(frame(colorAt)));
+  for (const rgb of [[138, 206, 0], [255, 122, 0], [206, 32, 48], [30, 121, 177], [242, 194, 48]]) {
+    const color = wash(() => rgb);
+    assert.ok(underInk(color) >= 4.5, `${rgb} is unreadable as ${color}`);
+    assert.ok(spread(color) > 70, `${rgb} washed out as ${color}`);
+  }
+  const lime = wash((x, y) => x > 40 && x < 64 && y > 56 && y < 72 ? [56, 65, 1] : [138, 206, 0]);
+  assert.ok(lime[1] - lime[2] > 80 && lime[1] > lime[0], `Light vivid artwork lost its color as ${lime}`);
+  assert.ok(spread(wash(() => [150, 140, 128])) < 40, 'Muted artwork should stay quiet');
+  for (const rgb of [[0, 0, 0], [128, 128, 128], [255, 255, 255]]) assert.ok(spread(wash(() => rgb)) < 3);
+});
+
 const listening = readFileSync(new URL('../listening.js', import.meta.url), 'utf8');
 const tintSource = listening.slice(listening.indexOf('  let accentPicker;'), listening.indexOf('  function paint('))
   .replace("import('./album-accent.js')", 'loadPicker()');
 function harness(loadPicker) {
   const painted = [];
   const context = vm.createContext({
-    loadPicker, paint: colors => painted.push(colors),
+    loadPicker, paint: colors => painted.push(colors), swap: apply => apply(),
     root: { style: { getPropertyValue: () => '' }, classList: { add() {}, remove() {}, toggle() {} } }, setTimeout: () => 1, clearTimeout() {},
   });
-  vm.runInContext(`let artwork; let tintTimer; let immersive = false; ${tintSource}
-    globalThis.run = key => { artwork = key; return tint({ currentSrc: key }); };
+  vm.runInContext(`let lit; let glance = null; let tintTimer; let immersive = false; ${tintSource}
+    globalThis.run = key => { lit = { currentSrc: key }; return tint(lit); };
+    globalThis.hover = key => { glance = key ? { currentSrc: key } : null; return glance ? tint(glance) : undefined; };
     globalThis.setImmersive = value => { immersive = value; };
     globalThis.cacheSize = () => accentCache.size;`, context);
   return { context, painted };
@@ -82,6 +117,19 @@ test('a failed picker load leaves the page alone and allows a later retry', asyn
   });
   await context.run('first'); assert.equal(painted.length, 0);
   await context.run('second'); assert.equal(painted.length, 1);
+});
+
+test('a hovered album takes over from the cover until it is released', async () => {
+  let resolve;
+  const pending = new Promise(done => { resolve = done; });
+  const { context, painted } = harness(() => pending);
+  const cover = context.run('cover'), hovered = context.hover('hovered');
+  resolve({ pickAccent: image => ({ accent: image.currentSrc }) });
+  await Promise.all([cover, hovered]);
+  assert.deepEqual(painted, [{ accent: 'hovered' }]);
+  context.hover(null);
+  await context.run('cover');
+  assert.deepEqual(painted, [{ accent: 'hovered' }, { accent: 'cover' }]);
 });
 
 test('delayed accents cannot overwrite a newly selected immersive theme', async () => {

@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://aditya-mehta1.github.io/images/me.jpg">
   <meta name="twitter:image:alt" content="Portrait of Aditya Mehta">
   <meta name="google-site-verification" content="7m0rUClaXCzLfUmnCJ3ze2Ym-qZ6MZRCTDiSPMgVC8o">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#fafafa">
 
   <script type="application/ld+json">
   {
@@ -80,7 +80,7 @@
   <link rel="preload" href="fonts/departuremono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://ps-website-helper.track-aditya-mehta.workers.dev">
   <link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
-  <link rel="stylesheet" href="homepage.css?v=20261111-7">
+  <link rel="stylesheet" href="homepage.css?v=20261111-8">
 </head>
 
 <body>
@@ -155,7 +155,7 @@
         <img src="images/me-520.webp" srcset="images/me-160.webp 160w, images/me-320.webp 320w, images/me-520.webp 520w, images/me-780.webp 780w, images/me-1040.webp 1040w" sizes="(max-width: 800px) 72px, 168px" alt="Aditya Mehta" width="1986" height="1960" fetchpriority="high">
       </div>
       <div class="contact">
-        <p>always happy to connect on <a href="mailto:amehta@caltech.edu">email</a> or <a href="https://x.com/amehta_05">twitter</a>!</p>
+        <p>always happy to connect on <a class="copy-email" href="mailto:amehta@caltech.edu" title="Copy amehta@caltech.edu" aria-live="polite">email</a> or twitter!</p>
         <nav class="links" aria-label="Profiles">
           <a href="https://scholar.google.com/citations?user=ai569u4AAAAJ&hl=en" aria-label="Google Scholar">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14ZM12 0 0 9.5l4.8 3.9A8 8 0 0 1 12 9a8 8 0 0 1 7.2 4.4L24 9.5Z"/></svg>
@@ -178,7 +178,7 @@
         <div class="listening-heading">
           <p class="listening-label">listening to</p>
           <span class="listening-current" hidden>now playing</span>
-          <button class="listening-theme" type="button" aria-pressed="false" aria-label="Match the page to this album" title="Match the page to this album"></button>
+          <button class="listening-theme" type="button" aria-pressed="false" aria-label="Match the page to this album" title="Match the page to this album">match</button>
         </div>
         <a class="listening-preview" id="listening" href="https://www.last.fm/user/aditya-mehta" aria-label="My recent tracks on Last.fm">
           <span class="listening-cover" aria-hidden="true"></span>
@@ -270,7 +270,7 @@
 
 </main>
 
-<script src="listening.js?v=20261111-8"></script>
+<script src="listening.js?v=20261111-9"></script>
 <script>
   (function() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -330,6 +330,24 @@
         document.addEventListener('visibilitychange', syncVideo);
       }
     }
+  })();
+
+  (function() {
+    const link = document.querySelector('.copy-email');
+    let timer;
+    link.addEventListener('click', async event => {
+      if (!navigator.clipboard) return;
+      event.preventDefault();
+      try {
+        await navigator.clipboard.writeText(link.href.replace('mailto:', ''));
+      } catch {
+        location.href = link.href;
+        return;
+      }
+      link.textContent = 'copied!';
+      clearTimeout(timer);
+      timer = setTimeout(() => { link.textContent = 'email'; }, 1400);
+    });
   })();
 
   (function() {

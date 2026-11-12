@@ -7,6 +7,12 @@ const luminance = hex => channels(hex).map(x => x / 255).map(x => x <= .04045 ? 
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
 const roles = ['paper', 'ink', 'ink2', 'ink3', 'accent', 'wash', 'tone'];
 const pairs = [['ink', 'paper'], ['ink2', 'paper'], ['ink3', 'paper'], ['ink', 'wash'], ['accent', 'paper']];
+const readable = (theme, label) => {
+  for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, label + ' contrast failed: ' + a + '/' + b);
+  assert(theme.chips.length >= 1 && theme.chips.length <= 3, label + ' highlight count');
+  for (const chip of theme.chips) assert(contrast(chip.ink, chip.fill) >= 4.5, label + ' highlight text unreadable on ' + chip.fill);
+};
+const warm = hex => channels(hex)[0] > channels(hex)[2] + 30;
 try {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
   const ctx = canvas.getContext('2d');
@@ -15,10 +21,12 @@ try {
     ctx.fillStyle = color; ctx.fillRect(0, 0, 128, 128);
     const theme = createTheme(canvas);
     for (const role of roles) assert(/^#[a-f0-9]{6}$/i.test(theme[role]), 'Invalid ' + role);
-    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Contrast failed: ' + color + ' ' + a + '/' + b);
+    readable(theme, color);
     const target = document.createElement('div'); applyTheme(theme, target);
     assert(target.style.getPropertyValue('--paper') === theme.paper, 'Background application failed');
     assert(target.style.getPropertyValue('--ink-2') === theme.ink2, 'Body color application failed');
+    assert(target.style.getPropertyValue('--chip-0') === theme.chips[0].fill, 'Highlight application failed');
+    assert(target.style.getPropertyValue('--chip-ink-2') === theme.chips[2 % theme.chips.length].ink, 'Highlight text application failed');
     assert(!document.documentElement.style.getPropertyValue('--paper'), 'Scoped theme changed root');
     assert(JSON.stringify(createTheme(canvas)) === JSON.stringify(theme), 'Extraction is not deterministic');
   }
@@ -27,28 +35,44 @@ try {
     ctx.fillStyle = '#be8a50'; ctx.fillRect(20, 20, 88, 88);
     const theme = createTheme(canvas), paper = channels(theme.paper);
     assert(paper[2] > paper[0], 'Warm subject erased the cool surroundings');
-    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Context contrast failed');
+    assert(warm(theme.chips[0].fill), 'Warm subject is missing from the highlights');
+    readable(theme, background);
   }
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 128, 128);
   ctx.fillStyle = '#be8a50'; ctx.fillRect(8, 8, 112, 112);
-  const framed = channels(createTheme(canvas).paper);
-  assert(framed[0] > framed[2], 'A neutral frame displaced the source color');
-  let previous;
+  const framed = createTheme(canvas);
+  assert([framed.paper, ...framed.chips.map(chip => chip.fill)].some(warm), 'A neutral frame erased the source color');
+  ctx.fillStyle = '#060406'; ctx.fillRect(0, 0, 128, 128);
+  for (const [i, stripe] of ['#e4833a', '#ebd249', '#64a848'].entries()) { ctx.fillStyle = stripe; ctx.fillRect(16, 20 + i * 32, 96, 20); }
+  const striped = createTheme(canvas);
+  assert(striped.scheme === 'dark' && luminance(striped.paper) < .02, 'A dark sleeve did not give a dark page');
+  assert(new Set(striped.chips.map(chip => chip.fill)).size === 3, 'Three cover colors did not give three highlights');
+  assert(!striped.underline && contrast(striped.accent, striped.paper) >= 4.5, 'Colorful cover did not give a colored link');
+  readable(striped, 'Striped');
+  ctx.fillStyle = '#8ace00'; ctx.fillRect(0, 0, 128, 128);
+  ctx.fillStyle = '#000000'; ctx.fillRect(40, 54, 48, 20);
+  const lime = createTheme(canvas), limePaper = channels(lime.paper);
+  assert(limePaper[1] > 180 && limePaper[2] < 60, 'A vivid cover did not keep its own color as the page');
+  assert(luminance(lime.chips[0].fill) < .05, 'Cover lettering is missing from the highlights');
+  readable(lime, 'Lime');
+  let previous, jumps = 0;
   for (let gray = 0; gray <= 255; gray++) {
     ctx.fillStyle = `rgb(${gray} ${gray} ${gray})`; ctx.fillRect(0, 0, 128, 128);
     const theme = createTheme(canvas), current = channels(theme.paper);
     assert(Math.max(...current) - Math.min(...current) <= 1, 'Neutral input gained a color cast');
-    if (previous) assert(Math.max(...current.map((x, i) => Math.abs(x - previous[i]))) <= 4, 'Small source change switched the whole background');
-    for (const [a, b] of pairs) assert(contrast(theme[a], theme[b]) >= 4.5, 'Gray contrast failed: ' + gray);
+    if (previous && Math.max(...current.map((x, i) => Math.abs(x - previous[i]))) > 4) jumps++;
+    assert(contrast(theme.ink, theme.paper) >= 6, 'Gray page too close to its text: ' + gray);
+    readable(theme, 'Gray ' + gray);
     previous = current;
   }
+  assert(jumps <= 1, 'Background brightness switched more than once across grays');
   ctx.clearRect(0, 0, 128, 128); ctx.fillStyle = 'rgba(120, 60, 180, .5)'; ctx.fillRect(16, 16, 96, 96);
   const transparent = createTheme(canvas);
   const opaque = document.createElement('canvas'); opaque.width = opaque.height = 128;
   const matte = opaque.getContext('2d'); matte.fillStyle = '#fff'; matte.fillRect(0, 0, 128, 128); matte.drawImage(canvas, 0, 0);
   assert(JSON.stringify(transparent) === JSON.stringify(createTheme(opaque)), 'Transparent artwork differs from its visible white matte');
   window.checkResult = { passed: true, solidCases: cases.length, grayCases: 256, alphaParity: true };
-  document.querySelector('#result').textContent = 'PASS: contrast, neutral continuity, alpha compositing, scoped application and repeatability.';
+  document.querySelector('#result').textContent = 'PASS: contrast, highlights, neutral grays, alpha compositing, scoped application and repeatability.';
 } catch (error) {
   window.checkResult = { passed: false, error: error.message };
   document.querySelector('#result').textContent = 'FAIL: ' + error.message;

@@ -1,15 +1,43 @@
 # Artwork-derived page theme
 
-`createTheme(decodedImageOrCanvas)` returns paper, ink, ink2, ink3, accent, wash and tone plus contrast metadata. `applyTheme(theme, element)` applies their CSS variables together. The website loads the bundle lazily when the album-theme toggle is enabled and caches twelve recent results.
+`createTheme(decodedImageOrCanvas)` turns a cover into a full page palette. `applyTheme(theme, element)` writes it as CSS variables in one pass. The website loads the bundle lazily when the album-theme toggle is enabled and caches twelve recent results.
 
-Transparent input is composited on white. A central Oklab geometric median provides robust surface lightness; a nearby source palette color provides the initial hue. Accent selection is independent and is corrected against the final surface.
+## What it returns
 
-For warm central subjects, cool context supported on both image sides can influence surface hue. Smooth color-density matching and continuous weights avoid selecting a single border pixel or abruptly switching background brightness. This is a directional heuristic for warm subjects against cool scenery, not semantic segmentation or a universal background detector. It never reads album names, IDs or manually supplied palettes. Near-neutral context is suppressed; text and background are applied atomically.
+| Property | CSS variable | Use |
+| --- | --- | --- |
+| `paper` | `--paper` | Page background: the cover's largest real color |
+| `ink`, `ink2`, `ink3` | `--ink`, `--ink-2`, `--ink-3` | Headings, body text, secondary text |
+| `chips` | `--chip-0…2`, `--chip-ink-0…2` | One to three highlight fills taken from the cover's other colors, each with its own black or white text color. `applyTheme` repeats them to fill three slots |
+| `accent` | `--accent`, `--mark` | Links and small details: a cover color moved in lightness until it reads on the page, or `ink` when none qualifies |
+| `underline` | — | `true` when the link color is too close to body text, so links need an underline |
+| `wash` | `--wash` | Soft fill that stays readable under `ink` (hover states, selection) |
+| `tone` | `--tone` | Decoration only |
+| `scheme` | `color-scheme` | `light` or `dark` |
 
-Build with `npm run build`. Run `npm run check` and `node scripts/listening-refresh.test.cjs`. Serve the repository locally and open `/scripts/immersive/check.html` for browser checks of final contrast, grayscale continuity, transparent compositing, source-role examples, scoped application and repeatability. Returned foreground roles meet 4.5:1 against paper; ink also meets 4.5:1 on wash. Tone is decoration, not a text color.
+`minContrast` and `accentContrast` report the lowest text contrast and the link contrast against the page.
 
-The comparison used 115 distinct album covers with six resize, JPEG and crop variants, plus six cached live artworks. Full-page reviews favored the cool charcoal treatment of Pink Moon and the muted violet treatment of Live Through This over their previous brown/tan surfaces. The latter remains lighter than its cover. This update reused the previous held-out set as regression data; it is not fresh independent validation.
+## How it works
 
-Known limits: a small crop of In Rainbows can cross the contrast boundary and switch foreground polarity; some vivid surfaces are intense and some midtones feel flat. Foreground/background interpretation remains imperfect. Browser checks cover desktop Chrome and a narrow viewport; Safari, Firefox and physical mobile performance remain unverified. Images require a decoded canvas-readable source and remote image CORS permission. If immersive generation fails, the widget attempts its accent-only fallback.
+The image is drawn at 128px on white and split into sixteen Oklab clusters. The page color is the densest group of similar clusters, counting area and the outer 8px border equally, so the cover's ground wins over its subject and an average of unrelated colors is never used. Mid-brightness results are moved to the nearer of two lightness levels, keeping hue and as much chroma as sRGB allows, so `ink` reaches at least 6:1.
 
-Background-role research: https://vis.stanford.edu/files/2013-ColorThemes-CHI.pdf . Color space: https://www.w3.org/TR/css-color-4/#ok-lab . Contrast: https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html . These inform the design; the implementation is a custom deterministic heuristic.
+Highlights are the most prominent clusters that differ from the page and from each other, ranked by area, chroma and local contrast. Colorless covers fall back to `wash`. Body and secondary text are `ink` mixed toward the page and never drop below 4.5:1; highlight text is also at least 4.5:1 on its fill.
+
+It never reads album names, IDs or manually supplied palettes.
+
+## Checks
+
+Build with `npm run build`. Run `npm run check` and `node scripts/listening-refresh.test.cjs`. Serve the repository locally and open `/scripts/immersive/check.html` for browser checks of contrast, highlights, gray input, transparent compositing, scoped application and repeatability.
+
+The approach was reviewed on 115 real Last.fm covers at the 500px size the site loads.
+
+## Known limits
+
+- Across flat grays the page brightness switches once, where the text flips between black and white. Artwork near that boundary can land on either side.
+- A thin neutral frame can become the page color; the framed image then appears in the highlights instead.
+- Photographic covers with no clear ground are a judgement call and can come out darker than they feel.
+- Black-and-white covers get solid black or white highlights.
+- Browser checks cover desktop Chrome and a narrow viewport; Safari, Firefox and physical mobile performance remain unverified.
+- Images need a decoded, canvas-readable source and remote CORS permission. If generation fails, the widget falls back to its accent-only tint.
+
+Color space: https://www.w3.org/TR/css-color-4/#ok-lab . Contrast: https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html .

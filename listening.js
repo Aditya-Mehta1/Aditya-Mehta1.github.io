@@ -63,7 +63,14 @@
   let positionFrame;
   let tintTimer;
   let lit = null;
+  let glance = null;
+  let wanted = null;
+  let glanceTimer;
   let immersive = false;
+  let pinned = false;
+  let peeking = false;
+  let peekTimer;
+  let swapTimer;
   let dragFrom = null;
   let dragged = false;
   let wheelTotal = 0;
@@ -76,20 +83,27 @@
   disc.className = 'listening-disc';
   sleeve.className = 'listening-sleeve';
   cover.append(halo, disc, sleeve);
-  document.querySelectorAll('.wash-phrase, mark').forEach((element, index) => element.style.setProperty('--order', index));
+  const phrases = document.querySelectorAll('.wash-phrase, mark');
+  phrases.forEach((element, index) => element.style.setProperty('--order', index));
+
+  function swap(apply) {
+    root.classList.add('is-swapping');
+    clearTimeout(swapTimer);
+    swapTimer = setTimeout(() => root.classList.remove('is-swapping'), 400);
+    apply();
+  }
 
   let accentPicker;
   const accentCache = new Map();
 
   async function tint(image) {
-    const selectedArtwork = artwork;
     const selectedMode = immersive;
     const key = image.currentSrc || image.src;
     let colours = accentCache.get(key);
     try {
       if (!colours) {
         const { pickAccent } = await (accentPicker ||= import('./album-accent.js'));
-        if (artwork !== selectedArtwork || immersive !== selectedMode) return;
+        if ((glance || lit) !== image || immersive !== selectedMode) return;
         colours = pickAccent(image);
         accentCache.set(key, colours);
         if (accentCache.size > 12) accentCache.delete(accentCache.keys().next().value);
@@ -98,20 +112,26 @@
       accentPicker = undefined;
       return;
     }
-    root.classList.toggle('is-tinting', !root.style.getPropertyValue('--paper'));
     clearTimeout(tintTimer);
+    if (root.style.getPropertyValue('--paper')) {
+      root.classList.remove('is-tinting');
+      swap(() => paint(colours));
+      return;
+    }
+    root.classList.add('is-tinting');
     tintTimer = setTimeout(() => root.classList.remove('is-tinting'), 1200);
     paint(colours);
   }
 
   function paint(colours) {
-    for (const name of ['wash', 'accent', 'tone']) {
+    for (const name of ['wash', 'accent', 'tone', 'mark']) {
       if (colours[name]) root.style.setProperty('--' + name, colours[name]);
       else root.style.removeProperty('--' + name);
     }
-    for (const name of ['paper', 'ink', 'ink-2', 'ink-3']) root.style.removeProperty('--' + name);
+    for (const name of ['paper', 'ink', 'ink-2', 'ink-3', 'chip-0', 'chip-1', 'chip-2', 'chip-ink-0', 'chip-ink-1', 'chip-ink-2']) root.style.removeProperty('--' + name);
+    root.classList.toggle('has-mark', Boolean(colours.mark));
     root.style.colorScheme = '';
-    themeMeta?.setAttribute('content', '#ffffff');
+    themeMeta?.setAttribute('content', '#fafafa');
     drawHalo(true);
   }
 
@@ -119,32 +139,70 @@
   const themeCache = new Map();
 
   async function immerse(image) {
-    const selectedArtwork = artwork;
     const key = image.currentSrc || image.src;
     try {
-      const { createTheme, applyTheme } = await (themeBuilder ||= import('./album-theme.js'));
-      if (artwork !== selectedArtwork || !immersive) return;
+      const { createTheme, applyTheme } = await (themeBuilder ||= import('./album-theme.js?v=2'));
+      if ((glance || lit) !== image || !immersive) return;
       let theme = themeCache.get(key);
       if (!theme) {
         theme = createTheme(image);
         themeCache.set(key, theme);
         if (themeCache.size > 12) themeCache.delete(themeCache.keys().next().value);
       }
-      root.classList.remove('is-tinting');
       clearTimeout(tintTimer);
-      applyTheme(theme);
-      themeMeta?.setAttribute('content', theme.paper);
-      drawHalo(true);
+      swap(() => {
+        root.classList.remove('is-tinting');
+        applyTheme(theme);
+        phrases.forEach((element, index) => { element.dataset.chip = index % theme.chips.length; });
+        root.classList.toggle('has-mark', !theme.underline);
+        themeMeta?.setAttribute('content', theme.paper);
+        drawHalo(true);
+      });
     } catch {
       themeBuilder = undefined;
-      if (artwork === selectedArtwork && immersive) tint(image);
+      if ((glance || lit) === image && immersive) tint(image);
     }
+  }
+
+  function settle() {
+    const image = glance || lit;
+    if (image && immersive) immerse(image);
+    else if (image) tint(image);
+    else if (!immersive || !section.classList.contains('has-cover')) paint({});
   }
 
   function colour(image) {
     lit = image;
-    if (immersive) immerse(image);
-    else tint(image);
+    settle();
+  }
+
+  function setMode(drop) {
+    const next = pinned || peeking;
+    if (drop) {
+      clearTimeout(glanceTimer);
+      wanted = null;
+    }
+    if (immersive === next && !(drop && glance)) return;
+    immersive = next;
+    if (drop) glance = null;
+    settle();
+  }
+
+  function glanceAt(album) {
+    if (!album.image || album.key === active) {
+      setMode(true);
+      return;
+    }
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.decoding = 'async';
+    image.addEventListener('load', () => {
+      if (wanted !== image) return;
+      glance = image;
+      settle();
+    });
+    wanted = image;
+    image.src = album.image.replace('/300x300/', '/500x500/');
   }
 
   function drawHalo(force) {
@@ -155,7 +213,7 @@
     probe.width = probe.height = 1;
     const probeContext = probe.getContext('2d', { willReadFrequently: true });
     probeContext.fillStyle = '#767676';
-    probeContext.fillStyle = getComputedStyle(root).getPropertyValue('--tone').trim();
+    probeContext.fillStyle = root.style.getPropertyValue('--tone') || getComputedStyle(root).getPropertyValue('--tone').trim();
     probeContext.fillRect(0, 0, 1, 1);
     const [red, green, blue] = probeContext.getImageData(0, 0, 1, 1).data;
     const span = size + haloReach * 2;
@@ -352,6 +410,15 @@
     button.addEventListener('click', () => {
       activate(album.key);
       if (jump) seek(album.key);
+    });
+    button.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse') return;
+      clearTimeout(glanceTimer);
+      glanceTimer = setTimeout(() => glanceAt(album), 120);
+    });
+    button.addEventListener('pointerleave', () => {
+      clearTimeout(glanceTimer);
+      glanceTimer = setTimeout(() => setMode(true), 160);
     });
     return button;
   }
@@ -736,10 +803,24 @@
   });
   cover.addEventListener('animationend', () => cover.classList.remove('is-bumping'));
   themeToggle.addEventListener('click', () => {
-    immersive = !immersive;
-    themeToggle.setAttribute('aria-pressed', String(immersive));
-    if (lit) colour(lit);
-    else if (!immersive) paint({});
+    pinned = !pinned;
+    if (!pinned) peeking = false;
+    clearTimeout(peekTimer);
+    themeToggle.setAttribute('aria-pressed', String(pinned));
+    themeToggle.textContent = pinned ? 'matched' : 'match';
+    setMode();
+  });
+  section.addEventListener('pointerenter', event => {
+    if (event.pointerType !== 'mouse') return;
+    clearTimeout(peekTimer);
+    clearTimeout(glanceTimer);
+    peekTimer = setTimeout(() => { peeking = true; setMode(); }, 140);
+    glanceTimer = setTimeout(() => setMode(true), 160);
+  });
+  section.addEventListener('pointerleave', () => {
+    clearTimeout(peekTimer);
+    clearTimeout(glanceTimer);
+    peekTimer = setTimeout(() => { peeking = false; setMode(true); }, 220);
   });
   toggle.addEventListener('click', () => {
     if (open) closeHistory();
@@ -761,7 +842,9 @@
     if (open && !earlier.contains(event.target)) closeHistory();
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && open) closeHistory();
+    if (event.key !== 'Escape' || !open) return;
+    closeHistory();
+    setMode(true);
   });
   window.addEventListener('resize', () => {
     drawHalo(false);

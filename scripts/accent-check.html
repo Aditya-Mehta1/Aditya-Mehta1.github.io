@@ -2,8 +2,7 @@
 <html lang="en"><meta charset="utf-8"><title>Accent self-check</title><body><pre id="result">Running…</pre><script type="module">
 import { pickAccent } from '../album-accent.js';
 const luminance = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16) / 255).map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4).reduce((s, x, i) => s + x * [.2126, .7152, .0722][i], 0);
-const contrast = hex => 1.05 / (luminance(hex) + .05);
-try {
+const contrast = hex => (luminance('#fafafa') + .05) / (luminance(hex) + .05);try {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
   const ctx = canvas.getContext('2d');
   const cases = ['#b4562e', '#194ba0', '#182d43', '#9d3e34', '#f1e2bf', '#ffff00', '#ff00ff', '#00ffff'];
@@ -13,6 +12,8 @@ try {
     ctx.fillStyle = color; ctx.fillRect(0, 0, 128, 128);
     const result = pickAccent(canvas);
     if (contrast(result.accent) < 4.5) throw new Error('Insufficient contrast: ' + color);
+    if (result.mark && contrast(result.mark) < 4.5) throw new Error('Keyword color unreadable: ' + color + ' → ' + result.mark);
+    if ((luminance(result.wash) + .05) / (luminance('#0a0a0a') + .05) < 4.5) throw new Error('Highlight too dark for text: ' + color + ' → ' + result.wash);
     if (contrast(color) >= 4.5) {
       if (result.accent !== color) throw new Error('Readable source color changed: ' + color + ' → ' + result.accent);
       preserved++;
