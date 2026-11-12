@@ -30,10 +30,11 @@
   const runs = new Map();
   let statusPending = false;
   let statusCheckedAt = -Infinity;
+  let refreshTimer;
   let artwork;
   let haloSize = 0;
   let live = null;
-  let fresh = false;
+  let freshUntil = 0;
   let summary = [];
   let tracks = [];
   let albums = [];
@@ -297,8 +298,10 @@
       credentials: 'omit', signal: AbortSignal.timeout(7000),
     });
     if (response.status === 429) {
-      const seconds = Math.max(1, Math.min(300, Number(response.headers.get('Retry-After')) || 60));
-      blockedUntil = Date.now() + seconds * 1000;
+      const retryAfter = response.headers.get('Retry-After');
+      const seconds = /^\d+$/.test(retryAfter) ? Number(retryAfter)
+        : Math.ceil((Date.parse(retryAfter) - Date.now()) / 1000);
+      blockedUntil = Date.now() + (Number.isSafeInteger(seconds) && seconds >= 0 ? Math.max(1, seconds) : 60) * 1000;
       throw new Error('History temporarily busy');
     }
     if (!response.ok) throw new Error('Could not load history. Try again');
@@ -364,12 +367,12 @@
   function show(direction = 0) {
     const index = position();
     const album = albums[index];
-    if (!album) return;
-    const playing = album.nowPlaying && fresh;
-    const name = document.createElement('span');
-    const artist = document.createElement('span');
+    const playing = Boolean(album?.nowPlaying) && Date.now() < freshUntil;
     current.hidden = !playing;
     section.classList.toggle('is-playing', playing);
+    if (!album) return;
+    const name = document.createElement('span');
+    const artist = document.createElement('span');
     name.className = 'listening-track';
     artist.className = 'listening-artist';
     name.textContent = album.name;
@@ -433,6 +436,7 @@
       known.clear();
       nextPage = incoming.nextPage;
     }
+    if (incoming.nextPage === null) nextPage = null;
     const added = past.filter(track => {
       const key = identity(track);
       if (known.has(key)) return false;
@@ -443,31 +447,33 @@
   }
 
   async function refreshStatus() {
-    if (document.hidden || open || paging || statusPending || performance.now() - statusCheckedAt < 60000) return;
+    const elapsed = performance.now() - statusCheckedAt;
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refreshStatus, elapsed < 60000 ? 60000 - elapsed : 60000);
+    if (document.hidden || paging || statusPending || elapsed < 60000) return;
     statusPending = true;
     statusCheckedAt = performance.now();
     try {
       const data = await getPage(1);
-      if (open || paging) return;
-      const age = Date.now() - Date.parse(data.fetchedAt);
+      const fetchedAt = Date.parse(data.fetchedAt);
       live = data.tracks.find(track => track.nowPlaying) || null;
-      fresh = Boolean(live) && age <= 120000;
+      freshUntil = live && fetchedAt <= Date.now() ? fetchedAt + 120000 : 0;
       clearTimeout(staleTimer);
-      if (fresh) {
-        staleTimer = setTimeout(() => {
-          fresh = false;
-          show();
-        }, Math.max(0, 120000 - age));
+      if (Date.now() < freshUntil) {
+        staleTimer = setTimeout(show, freshUntil - Date.now());
       }
       summary = data.albums;
-      merge(data);
-      buildHistory();
+      if (!open && !paging) {
+        merge(data);
+        buildHistory();
+      }
       render();
       section.hidden = albums.length === 0;
     } catch {
-      fresh = false;
+      freshUntil = 0;
       if (albums.length) show();
       else section.hidden = true;
+      if (more && Date.now() < blockedUntil) showCooldown();
     } finally {
       statusPending = false;
     }
@@ -628,7 +634,7 @@
   }
 
   async function loadMore() {
-    if (!open || paging || more.disabled || nextPage === null) return;
+    if (document.hidden || !open || paging || more.disabled || nextPage === null) return;
     let loaded = false;
     paging = true;
     more.disabled = true;
@@ -663,6 +669,7 @@
       more.disabled = false;
       if (Date.now() < blockedUntil) showCooldown();
     }
+    refreshStatus();
     if (!loaded || !open) seeking = null;
     else if (seeking) seek(seeking);
     else if (list.scrollHeight <= list.clientHeight + 48) loadMore();
@@ -671,10 +678,12 @@
   function showCooldown() {
     clearTimeout(retryTimer);
     const seconds = Math.max(0, Math.ceil((blockedUntil - Date.now()) / 1000));
+    historyFailed = true;
+    historyStatus.hidden = false;
+    historyStatus.textContent = seconds ? 'More tracks are temporarily unavailable.' : 'You can try again now.';
     more.disabled = seconds > 0;
     more.textContent = seconds ? 'Try again in ' + seconds + 's' : 'Try again';
     if (seconds) retryTimer = setTimeout(showCooldown, Math.min(1000, blockedUntil - Date.now()));
-    else historyStatus.textContent = 'You can try again now.';
   }
 
   section.addEventListener('pointerenter', () => {
@@ -761,8 +770,10 @@
   window.addEventListener('scroll', schedulePosition, { passive: true });
   drawHalo(true);
   refreshStatus();
-  setInterval(refreshStatus, 60000);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) refreshStatus();
+    if (!document.hidden) {
+      show();
+      refreshStatus();
+    }
   });
 })();

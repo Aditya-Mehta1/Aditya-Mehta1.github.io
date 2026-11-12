@@ -70,6 +70,9 @@ Never describe a planned control as already enforced.
 - MUST keep browser paging sequential, prevent duplicate in-flight loads, respect
   `Retry-After`, and avoid automatic retry loops. Fetch older pages only while
   history is open. Background/hidden tabs MUST NOT poll listening status.
+  Opening history MUST NOT freeze page-one status updates. Those updates MUST
+  preserve the open panel and any in-flight history load. Hidden tabs MUST NOT
+  start or automatically chain older-page requests.
 - MUST preserve already displayed history on failure, distinguish temporary
   throttling from other failures, and show the remaining retry delay accurately.
   Ending a cooldown MUST NOT promise fresh data or start an automatic retry loop.
@@ -90,6 +93,8 @@ Never describe a planned control as already enforced.
   `document.write`, `eval` or `new Function`. Treat third-party responses as
   untrusted even when fetched with our own key. Preserve safe URL validation.
 - MUST hide stale now-playing status after two minutes without fresh data.
+  Returning to a visible tab MUST recheck freshness before waiting for a refresh;
+  an invalid or future snapshot timestamp MUST NOT extend live status.
   Failure may leave safe recent-history data visible, but MUST NOT imply it is live.
 - MUST review new script sources, embeds, analytics, storage and network
   destinations before adding them. Do not introduce a third-party script CDN,
