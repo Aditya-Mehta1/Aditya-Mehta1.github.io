@@ -74,6 +74,7 @@ function widget(initial = snapshot()) {
     nodes['.listening-' + key] = new Element();
   }
   nodes['.listening-current'].hidden = true;
+  nodes['.listening-preview'].href = 'https://www.last.fm/user/aditya-mehta';
   const context = {
     document: {
       documentElement: new Element(), querySelector: key => nodes[key] || null,
@@ -137,6 +138,25 @@ function widget(initial = snapshot()) {
     freshResponse: body => response({ ...body, fetchedAt: new Date(epoch + now).toISOString() }),
   };
 }
+
+test('music links keep the profile destination across selection, paging and refresh', async () => {
+  const w = widget();
+  await settle();
+  const profile = 'https://www.last.fm/user/aditya-mehta';
+  assert.equal(w.nodes['.listening-preview'].href, profile);
+  w.activate(w.get().albums[1].key);
+  assert.equal(w.nodes['.listening-preview'].href, profile);
+  w.openHistory();
+  await w.loadMore();
+  await w.advance(60000);
+  assert.equal(w.nodes['.listening-preview'].href, profile);
+  const rows = w.get().list.children
+    .filter(element => element.className === 'history-run')
+    .flatMap(run => run.children[1].children)
+    .filter(element => element.className === 'history-track');
+  assert.equal(rows.length, 20);
+  for (const row of rows) assert.equal(row.href, profile);
+});
 
 test('polling waits only the remaining minute after an early interaction', async () => {
   const w = widget();

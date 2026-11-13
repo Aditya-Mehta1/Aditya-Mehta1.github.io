@@ -343,7 +343,6 @@
       name: track.name,
       artist: track.artist,
       album: typeof track.album === 'string' && track.album ? track.album : null,
-      url: typeof track.url === 'string' && track.url.startsWith('https://www.last.fm/') ? track.url : null,
       image: typeof track.image === 'string' && artworkHost.test(track.image) ? track.image : null,
       playedAt: typeof track.playedAt === 'string' ? track.playedAt : null,
       nowPlaying: track.nowPlaying === true,
@@ -445,8 +444,6 @@
     name.textContent = album.name;
     artist.textContent = album.artist;
     caption.replaceChildren(name, artist);
-    preview.href = album.url || profile;
-    preview.setAttribute('aria-label', album.name + ' by ' + album.artist + ' on Last.fm');
     showArtwork(album.image, direction);
     mark();
     strip.scrollTo({ left: Math.max(0, position() - 1) * thumbStep });
@@ -677,7 +674,7 @@
       const row = document.createElement('a');
       const name = document.createElement('span');
       row.className = 'history-track';
-      row.href = track.url || profile;
+      row.href = profile;
       name.className = 'history-name';
       name.textContent = track.name;
       row.append(name);
